@@ -1,7 +1,6 @@
-use iced::keyboard;
 use iced::widget::{self, column, row, scrollable, text, text_editor, Column};
 use iced::Length::FillPortion;
-use iced::{Center, Element, Fill, Subscription, Task, Theme};
+use iced::{Center, Element, Fill, Task, Theme};
 use rsff::Document;
 use std::cell::LazyCell;
 
@@ -21,8 +20,7 @@ pub enum Message {
 
     Scrolled(scrollable::Viewport),
 
-    ShiftPressed,
-    ShiftReleased,
+    TabPressed,
 }
 
 struct TestApp {
@@ -36,8 +34,6 @@ struct TestApp {
     t3_content: text_editor::Content,
 
     current_scroll: scrollable::RelativeOffset,
-
-    is_holding_shift: bool,
 
     theme: Theme,
 }
@@ -82,8 +78,6 @@ impl TestApp {
 
                 current_scroll: scrollable::RelativeOffset::START,
 
-                is_holding_shift: false,
-
                 theme: Theme::TokyoNight,
             },
             widget::focus_next(),
@@ -104,14 +98,7 @@ impl TestApp {
             Message::Scrolled(viewport) => {
                 self.current_scroll = viewport.relative_offset();
             }
-            Message::ShiftPressed => {
-                self.is_holding_shift = true;
-                println!("Shift Pressed")
-            }
-            Message::ShiftReleased => {
-                self.is_holding_shift = false;
-                println!("Shift released")
-            } // _ => {}
+            Message::TabPressed => return widget::focus_next(),
         }
         scrollable::snap_to(SCROLLER_ID.clone(), self.current_scroll)
     }
@@ -120,20 +107,20 @@ impl TestApp {
         let editor_1 = text_editor(&self.t1_content)
             .placeholder("Default text...")
             .on_action(Message::T1ContentChanged)
-            .height(50)
+            .height(100)
             .padding(10)
             .key_binding(editor_kp_bindings);
 
         let editor_2 = text_editor(&self.t2_content)
             .placeholder("Default text...")
             .on_action(Message::T2ContentChanged)
-            .height(50)
+            .height(100)
             .padding(10);
 
         let editor_3 = text_editor(&self.t3_content)
             .placeholder("Default text...")
             .on_action(Message::T3ContentChanged)
-            .height(50)
+            .height(100)
             .padding(10);
 
         // Maybe change this table type to
@@ -169,9 +156,11 @@ impl TestApp {
             .into()
     }
 
-    pub fn subscription(&self) -> Subscription<Message> {
-        let batch = Subscription::batch([keyboard::on_key_press(|_, m| match m {
-            keyboard::Modifiers::SHIFT => Some(Message::ShiftPressed),
+    pub fn subscription(&self) -> iced::Subscription<Message> {
+        let batch = iced::Subscription::batch([iced::keyboard::on_key_release(|k, _| match k {
+            iced::keyboard::Key::Named(iced::keyboard::key::Named::Tab) => {
+                Some(Message::TabPressed)
+            }
             _ => None,
         })]);
 
