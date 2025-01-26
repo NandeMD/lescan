@@ -2,7 +2,7 @@ use iced::widget::{self, column, row, scrollable, text, text_editor, Column};
 use iced::Length::FillPortion;
 use iced::{Center, Element, Fill, Task, Theme};
 use rsff::Document;
-use std::cell::LazyCell;
+use std::sync::LazyLock;
 
 use crate::message::Message;
 use crate::utils::bln::*;
@@ -10,7 +10,7 @@ use crate::utils::handlers::*;
 
 use crate::tinput::editor_kp_bindings;
 
-const SCROLLER_ID: LazyCell<scrollable::Id> = LazyCell::new(scrollable::Id::unique);
+static SCROLLER_ID: LazyLock<scrollable::Id> = LazyLock::new(scrollable::Id::unique);
 
 pub struct TestApp {
     pub translation_document: Document,
@@ -130,22 +130,19 @@ impl TestApp {
     }
 
     pub fn subscription(&self) -> iced::Subscription<Message> {
-        let batch =
-            iced::Subscription::batch([iced::keyboard::on_key_press(|k, m| match (k, m) {
-                (iced::keyboard::Key::Named(iced::keyboard::key::Named::Tab), _) => {
-                    Some(Message::TabPressed)
-                }
-                (
-                    iced::keyboard::Key::Named(iced::keyboard::key::Named::Enter),
-                    iced::keyboard::Modifiers::SHIFT,
-                ) => None,
-                (iced::keyboard::Key::Named(iced::keyboard::key::Named::Enter), _) => {
-                    Some(Message::EnterPressed)
-                }
-                _ => None,
-            })]);
-
-        batch
+        iced::Subscription::batch([iced::keyboard::on_key_press(|k, m| match (k, m) {
+            (iced::keyboard::Key::Named(iced::keyboard::key::Named::Tab), _) => {
+                Some(Message::TabPressed)
+            }
+            (
+                iced::keyboard::Key::Named(iced::keyboard::key::Named::Enter),
+                iced::keyboard::Modifiers::SHIFT,
+            ) => None,
+            (iced::keyboard::Key::Named(iced::keyboard::key::Named::Enter), _) => {
+                Some(Message::EnterPressed)
+            }
+            _ => None,
+        })])
     }
 
     pub fn theme(&self) -> Theme {
