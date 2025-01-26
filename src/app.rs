@@ -8,7 +8,7 @@ use crate::message::Message;
 use crate::utils::bln::*;
 use crate::utils::handlers::*;
 
-use crate::tinput::{editor_kp_bindings};
+use crate::tinput::editor_kp_bindings;
 
 const SCROLLER_ID: LazyCell<scrollable::Id> = LazyCell::new(scrollable::Id::unique);
 
