@@ -12,7 +12,6 @@ pub fn handle_enter_key_press(app: &mut TestApp) {
         .split("\n//\n")
         .map(|s| s.to_string())
         .collect();
-    println!("{:?}", tl);
     let pr = app
         .t2_content
         .text()
@@ -60,6 +59,4 @@ pub fn handle_enter_key_press(app: &mut TestApp) {
         let cmmnts = &app.translation_document.balloons[new].comments;
         app.t3_content = text_editor::Content::with_text(cmmnts.join("\n//\n").as_str());
     }
-
-    println!("{:?}", app.translation_document.balloons);
 }

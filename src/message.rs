@@ -6,8 +6,10 @@ pub enum Message {
     T2ContentChanged(text_editor::Action),
     T3ContentChanged(text_editor::Action),
 
-    Scrolled(scrollable::Viewport),
-
     TabPressed,
     EnterPressed,
+    SyncHeader(scrollable::AbsoluteOffset),
+
+    TableColumnResizing(usize, f32),
+    TableColumnResized,
 }

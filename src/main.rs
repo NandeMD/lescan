@@ -1,6 +1,7 @@
 mod app;
 use app::TestApp;
 
+mod balloons_table;
 mod message;
 mod tinput;
 mod utils;
