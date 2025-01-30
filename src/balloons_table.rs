@@ -90,10 +90,13 @@ impl<'a> table::Column<'a, Message, Theme, Renderer> for BCol {
         container(content).width(Length::Fill).center_y(32).into()
     }
 
-    fn footer(&'a self, _col_index: usize, rows: &'a [Self::Row]) -> Option<Element<'a, Message>> {
-        let content = text(format!("Balloons: {}", rows.len()));
+    fn footer(&'a self, _col_index: usize, _rows: &'a [Self::Row]) -> Option<Element<'a, Message>> {
+        // This footer is one per column, so it's not useful for us
+        // I want to have some bottom, single footer for the whole table
+        // let content = text(format!("Balloons: {}", rows.len()));
+        // Some(container(content).center_y(24).into())
 
-        Some(container(content).center_y(24).into())
+        None
     }
 
     fn width(&self) -> f32 {
