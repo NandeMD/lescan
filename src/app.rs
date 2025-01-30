@@ -1,7 +1,7 @@
-use iced::widget::{self, column, scrollable, text_editor};
+use iced::widget::{self, column, responsive, scrollable, text_editor};
 use iced::{Element, Task, Theme};
+use iced_table::table;
 use rsff::Document;
-use std::sync::LazyLock;
 
 use crate::message::Message;
 use crate::utils::bln::bln_content_creator;
@@ -10,9 +10,6 @@ use crate::utils::handlers::*;
 use crate::tinput::editor_kp_bindings;
 
 use crate::balloons_table::*;
-
-pub static SCROLLER_ID: LazyLock<scrollable::Id> = LazyLock::new(scrollable::Id::unique);
-pub static SCROLLER_ID2: LazyLock<scrollable::Id> = LazyLock::new(scrollable::Id::unique);
 
 pub struct TestApp {
     pub translation_document: Document,
@@ -24,13 +21,15 @@ pub struct TestApp {
     // Comments
     pub t3_content: text_editor::Content,
 
-    pub current_scroll: scrollable::AbsoluteOffset,
-
     pub current_balloon: usize,
 
     pub theme: Theme,
 
-    pub columns: Vec<BalloonColumn>,
+    pub columns: Vec<BCol>,
+    pub current_scroll: scrollable::AbsoluteOffset,
+    pub table_header_scroller: scrollable::Id,
+    pub table_body_scroller: scrollable::Id,
+    pub table_footer_scroller: scrollable::Id,
 }
 
 impl TestApp {
@@ -54,19 +53,24 @@ impl TestApp {
                 theme: Theme::TokyoNight,
 
                 columns: vec![
-                    BalloonColumn::new(ColumnKind::Index),
-                    BalloonColumn::new(ColumnKind::BlType),
-                    BalloonColumn::new(ColumnKind::BlImage),
-                    BalloonColumn::new(ColumnKind::TlContent),
-                    BalloonColumn::new(ColumnKind::PrContent),
-                    BalloonColumn::new(ColumnKind::Comments),
+                    BCol::new(ColumnKind::Index),
+                    BCol::new(ColumnKind::BlType),
+                    BCol::new(ColumnKind::BlImage),
+                    BCol::new(ColumnKind::TlContent),
+                    BCol::new(ColumnKind::PrContent),
+                    BCol::new(ColumnKind::Comments),
                 ],
+
+                table_header_scroller: scrollable::Id::unique(),
+                table_body_scroller: scrollable::Id::unique(),
+                table_footer_scroller: scrollable::Id::unique(),
             },
             widget::focus_next(),
         )
     }
 
     pub fn update(&mut self, message: Message) -> Task<Message> {
+        #[cfg(debug_assertions)]
         println!("{:?}", &message);
         match message {
             Message::T1ContentChanged(action) => {
@@ -94,10 +98,7 @@ impl TestApp {
             Message::TabPressed => return widget::focus_next(),
             Message::EnterPressed => handle_enter_key_press(self),
         }
-        Task::batch(vec![
-            scrollable::scroll_to(SCROLLER_ID.clone(), self.current_scroll),
-            scrollable::scroll_to(SCROLLER_ID2.clone(), self.current_scroll),
-        ])
+        Task::none()
     }
 
     pub fn view(&self) -> Element<Message> {
@@ -122,39 +123,20 @@ impl TestApp {
             .padding(10)
             .key_binding(editor_kp_bindings);
 
-        // Maybe change this table type to
-        // https://github.com/tarkah/iced_table/blob/master/example/src/main.rs
-        // ??
-        /* let scroller_col_names = row![
-            text!("ID").width(FillPortion(IDX_PORTION)),
-            text!("Type").width(FillPortion(TYPE_TEXT_PORTION)),
-            text!("Translation").width(FillPortion(TL_PORTION)),
-            text!("Comments").width(FillPortion(COMMENTS_PORTION))
-        ]
-        .width(Fill);
+        let table = responsive(|size| {
+            let t = table(
+                self.table_header_scroller.clone(),
+                self.table_body_scroller.clone(),
+                &self.columns,
+                &self.translation_document.balloons,
+                Message::SyncHeader,
+            )
+            .on_column_resize(Message::TableColumnResizing, Message::TableColumnResized)
+            .footer(self.table_footer_scroller.clone())
+            .min_width(size.width);
 
-        let mut bs = Column::new().align_x(Center).padding([40, 0]).spacing(40);
-        for b in self.translation_document.balloons.iter().enumerate() {
-            bs = bs.push(bln_creator(b.0, b.1));
-        }
-
-        let scroller: Element<Message> = Element::from(
-            scrollable(bs)
-                .direction(scrollable::Direction::Vertical(
-                    scrollable::Scrollbar::new().anchor(scrollable::Anchor::Start),
-                ))
-                .width(Fill)
-                .height(Fill)
-                .id(SCROLLER_ID.clone())
-                .on_scroll(Message::Scrolled),
-        );
-
-        column![editor_1, editor_2, editor_3, scroller_col_names, scroller]
-            .spacing(10)
-            .padding(10)
-            .into() */
-
-        let table = create_balloons_table(self);
+            t.into()
+        });
 
         column![editor_1, editor_2, editor_3, table]
             .spacing(10)

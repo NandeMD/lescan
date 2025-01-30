@@ -1,25 +1,9 @@
 use crate::message::Message;
-use iced::widget::{checkbox, container, horizontal_space, responsive, text};
-use iced::Length::Fill;
-use iced::{Element, Renderer, Theme};
+use iced::widget::{checkbox, container, text};
+use iced::{Element, Length, Renderer, Theme};
 use iced_table::table;
 use rsff::balloon::Balloon;
 use rsff::consts::TYPES;
-
-pub fn create_balloons_table(app: &crate::TestApp) -> Element<Message> {
-    responsive(|_size| {
-        table(
-            crate::app::SCROLLER_ID.clone(),
-            crate::app::SCROLLER_ID2.clone(),
-            &app.columns,
-            &app.translation_document.balloons,
-            Message::SyncHeader,
-        )
-        .on_column_resize(Message::TableColumnResizing, Message::TableColumnResized)
-        .into()
-    })
-    .into()
-}
 
 pub enum ColumnKind {
     Index,
@@ -30,13 +14,16 @@ pub enum ColumnKind {
     Comments,
 }
 
-pub struct BalloonColumn {
+// Based on:
+// https://github.com/tarkah/iced_table/blob/master/example/src/main.rs
+
+pub struct BCol {
     pub kind: ColumnKind,
     pub width: f32,
     pub resize_offset: Option<f32>,
 }
 
-impl BalloonColumn {
+impl BCol {
     pub fn new(kind: ColumnKind) -> Self {
         let width = match kind {
             ColumnKind::Index => 20.0,
@@ -47,7 +34,7 @@ impl BalloonColumn {
             ColumnKind::Comments => 100.0,
         };
 
-        BalloonColumn {
+        BCol {
             kind,
             width,
             resize_offset: None,
@@ -55,10 +42,10 @@ impl BalloonColumn {
     }
 }
 
-impl<'a> table::Column<'a, Message, Theme, Renderer> for BalloonColumn {
+impl<'a> table::Column<'a, Message, Theme, Renderer> for BCol {
     type Row = Balloon;
 
-    fn header(&'a self, _: usize) -> Element<'a, Message> {
+    fn header(&'a self, _col_index: usize) -> Element<'a, Message> {
         let content = match self.kind {
             ColumnKind::Index => "#",
             ColumnKind::BlType => "Type",
@@ -67,7 +54,8 @@ impl<'a> table::Column<'a, Message, Theme, Renderer> for BalloonColumn {
             ColumnKind::PrContent => "PR Content",
             ColumnKind::Comments => "Comments",
         };
-        text(content).into()
+
+        container(text(content)).center_y(24).into()
     }
 
     fn cell(
@@ -76,28 +64,30 @@ impl<'a> table::Column<'a, Message, Theme, Renderer> for BalloonColumn {
         row_index: usize,
         row: &'a Self::Row,
     ) -> Element<'a, Message> {
-        match self.kind {
-            ColumnKind::Index => container(text(row_index)),
+        let content: Element<_> = match self.kind {
+            ColumnKind::Index => text(row_index).into(),
             ColumnKind::BlImage => {
                 if row.balloon_img.is_some() {
-                    container(checkbox("", true))
+                    checkbox("", true)
                 } else {
-                    container(checkbox("", false))
+                    checkbox("", false)
                 }
             }
-            ColumnKind::TlContent => container(text(row.tl_content.join(" - "))),
-            ColumnKind::PrContent => container(text(row.pr_content.join(" - "))),
-            ColumnKind::Comments => container(text(row.comments.join(" - "))),
+            .into(),
+            ColumnKind::TlContent => text(row.tl_content.join(" - ")).into(),
+            ColumnKind::PrContent => text(row.pr_content.join(" - ")).into(),
+            ColumnKind::Comments => text(row.comments.join(" - ")).into(),
             ColumnKind::BlType => match row.btype {
-                TYPES::DIALOGUE => container(text("Dialogue")),
-                TYPES::SQUARE => container(text("Square")),
-                TYPES::THINKING => container(text("Thinking")),
-                TYPES::OT => container(text("OT")),
-                TYPES::ST => container(text("ST")),
-            },
-        }
-        .width(Fill)
-        .into()
+                TYPES::DIALOGUE => text("Dialogue"),
+                TYPES::SQUARE => text("Square"),
+                TYPES::THINKING => text("Thinking"),
+                TYPES::OT => text("OT"),
+                TYPES::ST => text("ST"),
+            }
+            .into(),
+        };
+
+        container(content).width(Length::Fill).center_y(32).into()
     }
 
     fn footer(&'a self, _col_index: usize, rows: &'a [Self::Row]) -> Option<Element<'a, Message>> {
