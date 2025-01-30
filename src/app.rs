@@ -1,5 +1,5 @@
 use iced::widget::{self, column, responsive, scrollable, text_editor};
-use iced::{Element, Task, Theme};
+use iced::{Element, Length, Task, Theme};
 use iced_table::table;
 use rsff::Document;
 
@@ -10,6 +10,7 @@ use crate::utils::handlers::*;
 use crate::tinput::editor_kp_bindings;
 
 use crate::balloons_table::*;
+use crate::footer::footer;
 
 pub struct TestApp {
     pub translation_document: Document,
@@ -138,7 +139,19 @@ impl TestApp {
             t.into()
         });
 
-        column![editor_1, editor_2, editor_3, table]
+        let footer_text = format!(
+            "Balloons: {} | Total Lines: {} | TL Characters: {} | PR Characters: {} | Comment Characters: {}",
+            self.translation_document.balloons.len(),
+            self.translation_document.line_count(),
+            self.translation_document.tl_chars(),
+            self.translation_document.pr_chars(),
+            self.translation_document.comment_chars()
+        );
+        let ftr = footer(footer_text)
+            .width(Length::Fill)
+            .height(Length::Fixed(30.0));
+
+        column![editor_1, editor_2, editor_3, table, ftr]
             .spacing(10)
             .padding(10)
             .into()
