@@ -188,16 +188,20 @@ impl TestApp {
                                     .center(Length::Fill)
                             }
                         }
-                        1 => {
-                            if let Some(img) = &self.translation_document.balloons
-                                [self.current_balloon]
-                                .balloon_img
-                            {
-                                container(text!("Image Present"))
-                            } else {
-                                container(text!("No image for this balloon"))
-                            }
+                        1 => if let Some(img) =
+                            &self.translation_document.balloons[self.current_balloon].balloon_img
+                        {
+                            let img_handle =
+                                iced::widget::image::Handle::from_bytes(img.img_data.clone());
+                            container(
+                                iced::widget::image::viewer(img_handle)
+                                    .width(Length::Fill)
+                                    .height(Length::Fill),
+                            )
+                        } else {
+                            container(text!("No image for this balloon"))
                         }
+                        .center(Length::Fill),
                         _ => panic!("WHAT TAB IS DIS?!"),
                     };
 
