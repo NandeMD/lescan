@@ -39,6 +39,8 @@ pub struct TestApp {
     pub table_header_scroller: scrollable::Id,
     pub table_body_scroller: scrollable::Id,
     pub table_footer_scroller: scrollable::Id,
+
+    pub current_img_tab: usize,
 }
 
 impl TestApp {
@@ -88,6 +90,8 @@ impl TestApp {
                 table_header_scroller: scrollable::Id::unique(),
                 table_body_scroller: scrollable::Id::unique(),
                 table_footer_scroller: scrollable::Id::unique(),
+
+                current_img_tab: 0,
             },
             widget::focus_next(),
         )
@@ -128,23 +132,14 @@ impl TestApp {
                 self.panes.drop(pane, target);
             }
             Message::PaneGridDragged(_) => {}
+            Message::ImageTabSelected(tab) => {
+                self.current_img_tab = tab;
+            }
         }
         Task::none()
     }
 
     pub fn view(&self) -> Element<Message> {
-        let footer_text = format!(
-            "Balloons: {} | Total Lines: {} | TL Characters: {} | PR Characters: {} | Comment Characters: {}",
-            self.translation_document.balloons.len(),
-            self.translation_document.line_count(),
-            self.translation_document.tl_chars(),
-            self.translation_document.pr_chars(),
-            self.translation_document.comment_chars()
-        );
-        let ftr = footer(footer_text)
-            .width(Length::Fill)
-            .height(Length::Fixed(30.0));
-
         let pg = pane_grid::PaneGrid::new(&self.panes, move |_id, pane, _is_max| {
             let title_bar = pane_grid::TitleBar::new(
                 container(match pane.id {
@@ -175,7 +170,39 @@ impl TestApp {
             );
 
             pane_grid::Content::new(match pane.id {
-                0 => container(text!("This will be images")),
+                0 => {
+                    let tab_br = iced_aw::TabBar::new(Message::ImageTabSelected)
+                        .push(
+                            0,
+                            iced_aw::TabLabel::IconText('\u{1F5CE}', "Document".into()),
+                        )
+                        .push(1, iced_aw::TabLabel::IconText('\u{1F5BC}', "Image".into()))
+                        .set_active_tab(&self.current_img_tab);
+
+                    let cnt = match self.current_img_tab {
+                        0 => {
+                            if let Some(_imgs) = &self.translation_document.images {
+                                container(text!("This will be images"))
+                            } else {
+                                container(text!("There is no image in this document"))
+                                    .center(Length::Fill)
+                            }
+                        }
+                        1 => {
+                            if let Some(img) = &self.translation_document.balloons
+                                [self.current_balloon]
+                                .balloon_img
+                            {
+                                container(text!("Image Present"))
+                            } else {
+                                container(text!("No image for this balloon"))
+                            }
+                        }
+                        _ => panic!("WHAT TAB IS DIS?!"),
+                    };
+
+                    container(column![tab_br, cnt].spacing(10).padding(10))
+                }
                 1 => {
                     let editor_1 = text_editor(&self.t1_content)
                         .placeholder("Default text...")
@@ -224,6 +251,18 @@ impl TestApp {
         .height(Fill)
         .on_drag(Message::PaneGridDragged)
         .on_resize(10, Message::PaneGridResized);
+
+        let footer_text = format!(
+            "Balloons: {} | Total Lines: {} | TL Characters: {} | PR Characters: {} | Comment Characters: {}",
+            self.translation_document.balloons.len(),
+            self.translation_document.line_count(),
+            self.translation_document.tl_chars(),
+            self.translation_document.pr_chars(),
+            self.translation_document.comment_chars()
+        );
+        let ftr = footer(footer_text)
+            .width(Length::Fill)
+            .height(Length::Fixed(30.0));
 
         column![pg, ftr].spacing(10).padding(10).into()
     }

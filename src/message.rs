@@ -15,4 +15,6 @@ pub enum Message {
 
     PaneGridDragged(pane_grid::DragEvent),
     PaneGridResized(pane_grid::ResizeEvent),
+
+    ImageTabSelected(usize),
 }

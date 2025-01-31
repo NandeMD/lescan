@@ -5,6 +5,6 @@ edition = "2021"
 
 [dependencies]
 iced = { version = "0.13", features = ["lazy"] }
-rsff = "1"
+rsff = "1.2"
 iced_aw = "0.11"
 iced_table = { git = "https://github.com/tarkah/iced_table.git" }
