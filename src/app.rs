@@ -1,4 +1,5 @@
-use iced::widget::{self, column, responsive, scrollable, text_editor};
+use iced::widget::{self, column, container, pane_grid, responsive, scrollable, text, text_editor};
+use iced::Length::Fill;
 use iced::{Element, Length, Task, Theme};
 use iced_table::table;
 use rsff::Document;
@@ -12,8 +13,15 @@ use crate::tinput::editor_kp_bindings;
 use crate::balloons_table::*;
 use crate::footer::footer;
 
+#[derive(Debug, Clone, Copy)]
+pub struct Pane {
+    id: usize,
+}
+
 pub struct TestApp {
     pub translation_document: Document,
+
+    pub panes: pane_grid::State<Pane>,
 
     // Translation text
     pub t1_content: text_editor::Content,
@@ -40,9 +48,24 @@ impl TestApp {
 
         let (t1_content, t2_content, t3_content) = bln_content_creator(&tl_doc, current_balloon);
 
+        let pane_config = pane_grid::Configuration::Split {
+            axis: pane_grid::Axis::Horizontal,
+            ratio: 0.5,
+            a: Box::new(pane_grid::Configuration::Split {
+                axis: pane_grid::Axis::Vertical,
+                ratio: 0.5,
+                a: Box::new(pane_grid::Configuration::Pane(Pane { id: 0 })),
+                b: Box::new(pane_grid::Configuration::Pane(Pane { id: 1 })),
+            }),
+            b: Box::new(pane_grid::Configuration::Pane(Pane { id: 2 })),
+        };
+
+        let panes = pane_grid::State::with_configuration(pane_config);
+
         (
             Self {
                 translation_document: tl_doc,
+                panes,
 
                 t1_content,
                 t2_content,
@@ -98,47 +121,18 @@ impl TestApp {
             }),
             Message::TabPressed => return widget::focus_next(),
             Message::EnterPressed => handle_enter_key_press(self),
+            Message::PaneGridResized(pane_grid::ResizeEvent { split, ratio }) => {
+                self.panes.resize(split, ratio);
+            }
+            Message::PaneGridDragged(pane_grid::DragEvent::Dropped { pane, target }) => {
+                self.panes.drop(pane, target);
+            }
+            Message::PaneGridDragged(_) => {}
         }
         Task::none()
     }
 
     pub fn view(&self) -> Element<Message> {
-        let editor_1 = text_editor(&self.t1_content)
-            .placeholder("Default text...")
-            .on_action(Message::T1ContentChanged)
-            .height(100)
-            .padding(10)
-            .key_binding(editor_kp_bindings);
-
-        let editor_2 = text_editor(&self.t2_content)
-            .placeholder("Default text...")
-            .on_action(Message::T2ContentChanged)
-            .height(100)
-            .padding(10)
-            .key_binding(editor_kp_bindings);
-
-        let editor_3 = text_editor(&self.t3_content)
-            .placeholder("Default text...")
-            .on_action(Message::T3ContentChanged)
-            .height(100)
-            .padding(10)
-            .key_binding(editor_kp_bindings);
-
-        let table = responsive(|size| {
-            let t = table(
-                self.table_header_scroller.clone(),
-                self.table_body_scroller.clone(),
-                &self.columns,
-                &self.translation_document.balloons,
-                Message::SyncHeader,
-            )
-            .on_column_resize(Message::TableColumnResizing, Message::TableColumnResized)
-            .footer(self.table_footer_scroller.clone())
-            .min_width(size.width);
-
-            t.into()
-        });
-
         let footer_text = format!(
             "Balloons: {} | Total Lines: {} | TL Characters: {} | PR Characters: {} | Comment Characters: {}",
             self.translation_document.balloons.len(),
@@ -151,10 +145,58 @@ impl TestApp {
             .width(Length::Fill)
             .height(Length::Fixed(30.0));
 
-        column![editor_1, editor_2, editor_3, table, ftr]
-            .spacing(10)
-            .padding(10)
-            .into()
+        let pg = pane_grid::PaneGrid::new(&self.panes, move |_id, pane, _is_max| {
+            pane_grid::Content::new(match pane.id {
+                0 => container(text!("This will be images")),
+                1 => {
+                    let editor_1 = text_editor(&self.t1_content)
+                        .placeholder("Default text...")
+                        .on_action(Message::T1ContentChanged)
+                        .height(100)
+                        .padding(10)
+                        .key_binding(editor_kp_bindings);
+
+                    let editor_2 = text_editor(&self.t2_content)
+                        .placeholder("Default text...")
+                        .on_action(Message::T2ContentChanged)
+                        .height(100)
+                        .padding(10)
+                        .key_binding(editor_kp_bindings);
+
+                    let editor_3 = text_editor(&self.t3_content)
+                        .placeholder("Default text...")
+                        .on_action(Message::T3ContentChanged)
+                        .height(100)
+                        .padding(10)
+                        .key_binding(editor_kp_bindings);
+                    container(column![editor_1, editor_2, editor_3].spacing(3)).center(Length::Fill)
+                }
+                2 => {
+                    let table = responsive(|size| {
+                        let t = table(
+                            self.table_header_scroller.clone(),
+                            self.table_body_scroller.clone(),
+                            &self.columns,
+                            &self.translation_document.balloons,
+                            Message::SyncHeader,
+                        )
+                        .on_column_resize(Message::TableColumnResizing, Message::TableColumnResized)
+                        .footer(self.table_footer_scroller.clone())
+                        .min_width(size.width);
+
+                        t.into()
+                    });
+                    container(table)
+                }
+                _ => panic!("What is dis pane?!"),
+            })
+        })
+        .width(Fill)
+        .height(Fill)
+        .on_drag(Message::PaneGridDragged)
+        .on_resize(10, Message::PaneGridResized);
+
+        column![pg, ftr].spacing(10).padding(10).into()
     }
 
     pub fn subscription(&self) -> iced::Subscription<Message> {

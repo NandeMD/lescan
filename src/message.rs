@@ -1,4 +1,4 @@
-use iced::widget::{scrollable, text_editor};
+use iced::widget::{pane_grid, scrollable, text_editor};
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -12,4 +12,7 @@ pub enum Message {
 
     TableColumnResizing(usize, f32),
     TableColumnResized,
+
+    PaneGridDragged(pane_grid::DragEvent),
+    PaneGridResized(pane_grid::ResizeEvent),
 }
