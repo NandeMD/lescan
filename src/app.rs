@@ -146,6 +146,34 @@ impl TestApp {
             .height(Length::Fixed(30.0));
 
         let pg = pane_grid::PaneGrid::new(&self.panes, move |_id, pane, _is_max| {
+            let title_bar = pane_grid::TitleBar::new(
+                container(match pane.id {
+                    0 => text!("Images"),
+                    1 => text!("Editor"),
+                    2 => text!("Balloons"),
+                    _ => panic!("Wut id is dis?!"),
+                })
+                .padding(10)
+                .style(|_| {
+                    let thm = self.theme().clone();
+
+                    container::Style {
+                        border: iced::Border {
+                            color: thm.extended_palette().primary.strong.color,
+                            width: 2.0,
+                            radius: iced::border::Radius {
+                                top_left: 5.0,
+                                top_right: 5.0,
+                                bottom_right: 5.0,
+                                bottom_left: 5.0,
+                            },
+                        },
+                        text_color: Some(thm.extended_palette().primary.weak.color),
+                        ..Default::default()
+                    }
+                }),
+            );
+
             pane_grid::Content::new(match pane.id {
                 0 => container(text!("This will be images")),
                 1 => {
@@ -190,6 +218,7 @@ impl TestApp {
                 }
                 _ => panic!("What is dis pane?!"),
             })
+            .title_bar(title_bar)
         })
         .width(Fill)
         .height(Fill)
