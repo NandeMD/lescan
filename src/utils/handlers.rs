@@ -59,23 +59,18 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
         }
         Message::FileDropped(path) => {
             if path.is_file() {
-                match path
-                    .extension()
-                    .unwrap()
-                    .to_str()
-                    .unwrap()
-                    .to_lowercase()
-                    .as_str()
-                {
-                    "sffx" | "sffz" | "txt" => {
-                        app.translation_document = app
-                            .translation_document
-                            .open(path.as_os_str().to_str().unwrap())
-                            .unwrap()
-                            .unwrap()
-                    }
+                let ext = path.extension().unwrap().to_str().unwrap().to_lowercase();
 
-                    _ => {} // Ignore other file types for now.
+                if ["sffx", "sffz", "txt"].contains(&ext.as_str()) {
+                    app.translation_document = app
+                        .translation_document
+                        .open(path.as_os_str().to_str().unwrap())
+                        .unwrap()
+                        .unwrap();
+                } else if SUPPORTED_IMG_EXTENSIONS.contains(&ext.as_str()) {
+                    let current_bln = app.current_balloon;
+                    let new_img_data = std::fs::read(path).unwrap();
+                    app.translation_document.balloons[current_bln].add_image(ext, new_img_data);
                 }
             } else if path.is_dir() {
                 let mut images_in_path = std::fs::read_dir(path)
