@@ -1,10 +1,6 @@
 mod app;
 use app::TestApp;
-
-mod balloons_table;
-mod footer;
 mod message;
-mod tinput;
 mod utils;
 
 fn main() -> iced::Result {
