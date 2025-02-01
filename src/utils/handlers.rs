@@ -1,8 +1,108 @@
 use crate::app::TestApp;
 use crate::message::Message;
 use iced::keyboard::key::{Key, Named};
-use iced::widget::text_editor::{self, Binding, KeyPress, Status};
+use iced::widget::{
+    self,
+    text_editor::{self, Binding, KeyPress, Status},
+};
+use iced::Task;
 use rsff::balloon::Balloon;
+
+const SUPPORTED_IMG_EXTENSIONS: [&str; 12] = [
+    "jpg", "jpeg", "png", "gif", "bmp", "tiff", "webp", "avif", "dds", "ff", "hdr", "ico",
+];
+
+pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<Message> {
+    match msg {
+        Message::T1ContentChanged(action) => {
+            app.t1_content.perform(action);
+        }
+        Message::T2ContentChanged(action) => {
+            app.t2_content.perform(action);
+        }
+        Message::T3ContentChanged(action) => {
+            app.t3_content.perform(action);
+        }
+        Message::SyncHeader(offset) => {
+            app.current_scroll = offset;
+        }
+        Message::TableColumnResizing(index, offset) => {
+            if let Some(col) = app.columns.get_mut(index) {
+                col.resize_offset = Some(offset);
+            }
+        }
+        Message::TableColumnResized => app.columns.iter_mut().for_each(|col| {
+            if let Some(offset) = col.resize_offset.take() {
+                col.width += offset;
+            }
+        }),
+        Message::TabPressed => return iced::widget::focus_next(),
+        Message::EnterPressed => handle_enter_key_press(app),
+        Message::PaneGridResized(widget::pane_grid::ResizeEvent { split, ratio }) => {
+            app.panes.resize(split, ratio);
+        }
+        Message::PaneGridDragged(widget::pane_grid::DragEvent::Dropped { pane, target }) => {
+            app.panes.drop(pane, target);
+        }
+        Message::PaneGridDragged(_) => {}
+        Message::ImageTabSelected(tab) => {
+            app.current_img_tab = tab;
+        }
+        Message::ImageScrolled(vp) => {
+            if app.translation_document.images.is_some() {
+                app.img_scroller_current_scroll = vp.relative_offset();
+                return widget::scrollable::snap_to(
+                    app.img_scroller.clone(),
+                    app.img_scroller_current_scroll,
+                );
+            }
+        }
+        Message::FileDropped(path) => {
+            if path.is_file() {
+                match path
+                    .extension()
+                    .unwrap()
+                    .to_str()
+                    .unwrap()
+                    .to_lowercase()
+                    .as_str()
+                {
+                    "sffx" | "sffz" | "txt" => {
+                        app.translation_document = app
+                            .translation_document
+                            .open(path.as_os_str().to_str().unwrap())
+                            .unwrap()
+                            .unwrap()
+                    }
+
+                    _ => {} // Ignore other file types for now.
+                }
+            } else if path.is_dir() {
+                let mut images_in_path = std::fs::read_dir(path)
+                    .unwrap()
+                    .filter(|e| {
+                        e.is_ok()
+                            && e.as_ref().unwrap().path().is_file()
+                            && SUPPORTED_IMG_EXTENSIONS.contains(
+                                &e.as_ref()
+                                    .unwrap()
+                                    .path()
+                                    .extension()
+                                    .unwrap()
+                                    .to_str()
+                                    .unwrap(),
+                            )
+                    })
+                    .map(|r| r.unwrap().path().to_str().unwrap().to_string())
+                    .collect::<Vec<_>>();
+                images_in_path.sort();
+
+                app.translation_document.images = Some(images_in_path)
+            }
+        }
+    }
+    Task::none()
+}
 
 pub fn handle_enter_key_press(app: &mut TestApp) {
     // Save the content of the text editors to the current balloon

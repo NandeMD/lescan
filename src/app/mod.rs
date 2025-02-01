@@ -97,52 +97,7 @@ impl TestApp {
     pub fn update(&mut self, message: Message) -> Task<Message> {
         #[cfg(debug_assertions)]
         println!("{:?}", &message);
-        match message {
-            Message::T1ContentChanged(action) => {
-                self.t1_content.perform(action);
-            }
-            Message::T2ContentChanged(action) => {
-                self.t2_content.perform(action);
-            }
-            Message::T3ContentChanged(action) => {
-                self.t3_content.perform(action);
-            }
-            Message::SyncHeader(offset) => {
-                self.current_scroll = offset;
-            }
-            Message::TableColumnResizing(index, offset) => {
-                if let Some(col) = self.columns.get_mut(index) {
-                    col.resize_offset = Some(offset);
-                }
-            }
-            Message::TableColumnResized => self.columns.iter_mut().for_each(|col| {
-                if let Some(offset) = col.resize_offset.take() {
-                    col.width += offset;
-                }
-            }),
-            Message::TabPressed => return widget::focus_next(),
-            Message::EnterPressed => handle_enter_key_press(self),
-            Message::PaneGridResized(pane_grid::ResizeEvent { split, ratio }) => {
-                self.panes.resize(split, ratio);
-            }
-            Message::PaneGridDragged(pane_grid::DragEvent::Dropped { pane, target }) => {
-                self.panes.drop(pane, target);
-            }
-            Message::PaneGridDragged(_) => {}
-            Message::ImageTabSelected(tab) => {
-                self.current_img_tab = tab;
-            }
-            Message::ImageScrolled(vp) => {
-                if self.translation_document.images.is_some() {
-                    self.img_scroller_current_scroll = vp.relative_offset();
-                    return scrollable::snap_to(
-                        self.img_scroller.clone(),
-                        self.img_scroller_current_scroll,
-                    );
-                }
-            }
-        }
-        Task::none()
+        message_handler(message, self)
     }
 
     pub fn view(&self) -> Element<Message> {
@@ -164,19 +119,27 @@ impl TestApp {
     }
 
     pub fn subscription(&self) -> iced::Subscription<Message> {
-        iced::Subscription::batch([iced::keyboard::on_key_press(|k, m| match (k, m) {
-            (iced::keyboard::Key::Named(iced::keyboard::key::Named::Tab), _) => {
-                Some(Message::TabPressed)
-            }
-            (
-                iced::keyboard::Key::Named(iced::keyboard::key::Named::Enter),
-                iced::keyboard::Modifiers::SHIFT,
-            ) => None,
-            (iced::keyboard::Key::Named(iced::keyboard::key::Named::Enter), _) => {
-                Some(Message::EnterPressed)
-            }
-            _ => None,
-        })])
+        iced::Subscription::batch([
+            iced::keyboard::on_key_press(|k, m| match (k, m) {
+                (iced::keyboard::Key::Named(iced::keyboard::key::Named::Tab), _) => {
+                    Some(Message::TabPressed)
+                }
+                (
+                    iced::keyboard::Key::Named(iced::keyboard::key::Named::Enter),
+                    iced::keyboard::Modifiers::SHIFT,
+                ) => None,
+                (iced::keyboard::Key::Named(iced::keyboard::key::Named::Enter), _) => {
+                    Some(Message::EnterPressed)
+                }
+                _ => None,
+            }),
+            iced::event::listen_with(|ev, _status, _window| match ev {
+                iced::Event::Window(iced::window::Event::FileDropped(pth)) => {
+                    Some(Message::FileDropped(pth))
+                }
+                _ => None,
+            }),
+        ])
     }
 
     pub fn theme(&self) -> Theme {
