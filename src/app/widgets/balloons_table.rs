@@ -16,6 +16,8 @@ pub enum ColumnKind {
 
 // Based on:
 // https://github.com/tarkah/iced_table/blob/master/example/src/main.rs
+//
+// TODO: Find a way to implement selection of the table rows
 
 pub struct BCol {
     pub kind: ColumnKind,

@@ -34,6 +34,8 @@ pub struct TestApp {
     pub table_footer_scroller: scrollable::Id,
 
     pub current_img_tab: usize,
+    pub img_scroller: scrollable::Id,
+    pub img_scroller_current_scroll: scrollable::RelativeOffset,
 }
 
 impl TestApp {
@@ -85,6 +87,8 @@ impl TestApp {
                 table_footer_scroller: scrollable::Id::unique(),
 
                 current_img_tab: 0,
+                img_scroller: scrollable::Id::unique(),
+                img_scroller_current_scroll: scrollable::RelativeOffset::START,
             },
             widget::focus_next(),
         )
@@ -127,6 +131,15 @@ impl TestApp {
             Message::PaneGridDragged(_) => {}
             Message::ImageTabSelected(tab) => {
                 self.current_img_tab = tab;
+            }
+            Message::ImageScrolled(vp) => {
+                if self.translation_document.images.is_some() {
+                    self.img_scroller_current_scroll = vp.relative_offset();
+                    return scrollable::snap_to(
+                        self.img_scroller.clone(),
+                        self.img_scroller_current_scroll,
+                    );
+                }
             }
         }
         Task::none()

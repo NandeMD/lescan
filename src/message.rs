@@ -17,4 +17,5 @@ pub enum Message {
     PaneGridResized(pane_grid::ResizeEvent),
 
     ImageTabSelected(usize),
+    ImageScrolled(scrollable::Viewport),
 }

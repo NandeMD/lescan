@@ -1,3 +1,4 @@
+use super::document_img_viewer::generate_image_viewer;
 use crate::message::Message;
 use crate::utils::handlers::editor_kp_bindings;
 use iced::widget::{column, container, pane_grid, responsive, text, text_editor};
@@ -45,14 +46,7 @@ pub fn main_content_pane_grid(app: &crate::app::TestApp) -> pane_grid::PaneGrid<
                     .set_active_tab(&app.current_img_tab);
 
                 let cnt = match app.current_img_tab {
-                    0 => {
-                        if let Some(_imgs) = &app.translation_document.images {
-                            container(text!("This will be images"))
-                        } else {
-                            container(text!("There is no image in this document"))
-                                .center(Length::Fill)
-                        }
-                    }
+                    0 => container(generate_image_viewer(app)).center(Length::Fill),
                     1 => if let Some(img) =
                         &app.translation_document.balloons[app.current_balloon].balloon_img
                     {
