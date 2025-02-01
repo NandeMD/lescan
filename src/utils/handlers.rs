@@ -62,6 +62,7 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
                 let ext = path.extension().unwrap().to_str().unwrap().to_lowercase();
 
                 if ["sffx", "sffz", "txt"].contains(&ext.as_str()) {
+                    app.current_balloon = 0;
                     app.translation_document = app
                         .translation_document
                         .open(path.as_os_str().to_str().unwrap())
