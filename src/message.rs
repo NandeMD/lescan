@@ -1,7 +1,9 @@
+use crate::app::widgets::main_content::BlnTypes;
 use iced::widget::{pane_grid, scrollable, text_editor};
 
 #[derive(Debug, Clone)]
 pub enum Message {
+    BlnTypeSelected(BlnTypes),
     T1ContentChanged(text_editor::Action),
     T2ContentChanged(text_editor::Action),
     T3ContentChanged(text_editor::Action),

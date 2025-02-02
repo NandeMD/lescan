@@ -16,6 +16,7 @@ pub struct TestApp {
 
     pub panes: pane_grid::State<widgets::main_content::Pane>,
 
+    pub selected_bln_type: Option<widgets::main_content::BlnTypes>,
     // Translation text
     pub t1_content: text_editor::Content,
     // Proofread text
@@ -64,6 +65,7 @@ impl TestApp {
                 translation_document: tl_doc,
                 panes,
 
+                selected_bln_type: Some(widgets::main_content::BlnTypes::Dialogue),
                 t1_content,
                 t2_content,
                 t3_content,

@@ -1,9 +1,30 @@
 use super::document_img_viewer::generate_image_viewer;
 use crate::message::Message;
 use crate::utils::handlers::editor_kp_bindings;
-use iced::widget::{column, container, pane_grid, responsive, text, text_editor};
-use iced::{Fill, Length};
+use iced::widget::{column, container, pane_grid, pick_list, responsive, text, text_editor};
+use iced::{Fill, Length, Theme};
 use iced_table::table;
+
+#[derive(PartialEq, Eq, Clone, Copy, Debug)]
+pub enum BlnTypes {
+    Dialogue,
+    Square,
+    Thinking,
+    ST,
+    OT,
+}
+
+impl std::fmt::Display for BlnTypes {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            BlnTypes::Dialogue => write!(f, "Dialogue"),
+            BlnTypes::Square => write!(f, "Square"),
+            BlnTypes::Thinking => write!(f, "Thinking"),
+            BlnTypes::ST => write!(f, "ST"),
+            BlnTypes::OT => write!(f, "OT"),
+        }
+    }
+}
 
 pub fn main_content_pane_grid(app: &crate::app::TestApp) -> pane_grid::PaneGrid<Message> {
     pane_grid::PaneGrid::new(&app.panes, move |_id, pane, _is_max| {
@@ -67,6 +88,19 @@ pub fn main_content_pane_grid(app: &crate::app::TestApp) -> pane_grid::PaneGrid<
                 container(column![tab_br, cnt].spacing(10).padding(10))
             }
             1 => {
+                let bln_type_picker = pick_list(
+                    [
+                        BlnTypes::Dialogue,
+                        BlnTypes::Square,
+                        BlnTypes::Thinking,
+                        BlnTypes::OT,
+                        BlnTypes::ST,
+                    ],
+                    app.selected_bln_type,
+                    Message::BlnTypeSelected,
+                )
+                .width(Length::Fill)
+                .padding(5);
                 let editor_1 = text_editor(&app.t1_content)
                     .placeholder("Default text...")
                     .on_action(Message::T1ContentChanged)
@@ -87,7 +121,8 @@ pub fn main_content_pane_grid(app: &crate::app::TestApp) -> pane_grid::PaneGrid<
                     .height(100)
                     .padding(10)
                     .key_binding(editor_kp_bindings);
-                container(column![editor_1, editor_2, editor_3].spacing(3)).center(Length::Fill)
+                container(column![bln_type_picker, editor_1, editor_2, editor_3].spacing(3))
+                    .center(Length::Fill)
             }
             2 => {
                 let table = responsive(|size| {

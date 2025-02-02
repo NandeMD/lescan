@@ -1,3 +1,4 @@
+use crate::app::widgets::main_content::BlnTypes;
 use crate::app::TestApp;
 use crate::message::Message;
 use iced::keyboard::key::{Key, Named};
@@ -14,6 +15,30 @@ const SUPPORTED_IMG_EXTENSIONS: [&str; 12] = [
 
 pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<Message> {
     match msg {
+        Message::BlnTypeSelected(bln_type) => {
+            app.selected_bln_type = Some(bln_type);
+            match app.selected_bln_type {
+                Some(BlnTypes::Dialogue) => {
+                    app.translation_document.balloons[app.current_balloon].btype =
+                        rsff::TYPES::DIALOGUE
+                }
+                Some(BlnTypes::Thinking) => {
+                    app.translation_document.balloons[app.current_balloon].btype =
+                        rsff::TYPES::THINKING
+                }
+                Some(BlnTypes::Square) => {
+                    app.translation_document.balloons[app.current_balloon].btype =
+                        rsff::TYPES::SQUARE
+                }
+                Some(BlnTypes::OT) => {
+                    app.translation_document.balloons[app.current_balloon].btype = rsff::TYPES::OT
+                }
+                Some(BlnTypes::ST) => {
+                    app.translation_document.balloons[app.current_balloon].btype = rsff::TYPES::ST
+                }
+                _ => {}
+            }
+        }
         Message::T1ContentChanged(action) => {
             app.t1_content.perform(action);
         }
