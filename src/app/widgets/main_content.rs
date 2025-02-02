@@ -2,7 +2,7 @@ use super::document_img_viewer::generate_image_viewer;
 use crate::message::Message;
 use crate::utils::handlers::editor_kp_bindings;
 use iced::widget::{column, container, pane_grid, pick_list, responsive, text, text_editor};
-use iced::{Fill, Length, Theme};
+use iced::{Fill, Length};
 use iced_table::table;
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
