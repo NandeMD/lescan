@@ -143,6 +143,17 @@ impl TestApp {
                 ) => Some(Message::BalloonTypeCycleDown),
                 _ => None,
             }),
+            iced::keyboard::on_key_press(|k, m| {
+                if let iced::keyboard::Key::Character(c) = k {
+                    if c == "v" && m.control() || m.command() {
+                        Some(Message::CurrentBlnImgPaste)
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            }),
             iced::event::listen_with(|ev, _status, _window| match ev {
                 iced::Event::Window(iced::window::Event::FileDropped(pth)) => {
                     Some(Message::FileDropped(pth))

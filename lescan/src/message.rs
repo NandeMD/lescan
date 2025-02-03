@@ -24,4 +24,5 @@ pub enum Message {
 
     BalloonTypeCycleUp,
     BalloonTypeCycleDown,
+    CurrentBlnImgPaste,
 }

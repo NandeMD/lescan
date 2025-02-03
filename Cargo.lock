@@ -1849,6 +1849,7 @@ dependencies = [
 name = "iced_test"
 version = "0.1.0"
 dependencies = [
+ "clipboard-win",
  "iced",
  "iced_aw",
  "iced_table",

@@ -190,6 +190,7 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
                 .clone();
             }
         }
+        Message::CurrentBlnImgPaste => clipboard_img_paste(app),
     }
     Task::none()
 }
@@ -313,6 +314,20 @@ fn handle_text_input_balloon_type_selection(
             *text_editor_content = text_editor::Content::with_text(stripped);
             current_balloon.btype = TYPES::THINKING;
             *selected_bln_type = Some(BlnTypes::Thinking);
+        }
+    }
+}
+
+fn clipboard_img_paste(app: &mut TestApp) {
+    #[cfg(target_os = "windows")]
+    {
+        use clipboard_win::{formats, Clipboard, Getter};
+        if let Ok(_clip) = Clipboard::new_attempts(10) {
+            let mut img_bmp_data: Vec<u8> = vec![];
+            if formats::Bitmap.read_clipboard(&mut img_bmp_data).is_ok() {
+                app.translation_document.balloons[app.current_balloon]
+                    .add_image("bmp".into(), img_bmp_data);
+            }
         }
     }
 }
