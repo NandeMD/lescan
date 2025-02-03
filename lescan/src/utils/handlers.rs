@@ -50,6 +50,11 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
         }
         Message::T2ContentChanged(action) => {
             app.t2_content.perform(action);
+            handle_text_input_balloon_type_selection(
+                &mut app.t2_content,
+                &mut app.translation_document.balloons[app.current_balloon],
+                &mut app.selected_bln_type,
+            );
         }
         Message::T3ContentChanged(action) => {
             app.t3_content.perform(action);
