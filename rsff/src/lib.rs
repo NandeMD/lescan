@@ -89,8 +89,6 @@ impl Document {
     ///
     /// let mut d: Document = Document::open("test.sffx").unwrap();
     /// ```
-    ///
-    /// **Note:** I messed up this absolutely shitty method and will change it in the future definitely.
     pub fn open<P: ?Sized + AsRef<Path>>(file_path: &P) -> Result<Document> {
         let p = file_path.as_ref();
 
@@ -125,7 +123,7 @@ impl Document {
     // This is probably most unnecessary code ib this crate.
     fn txt_to_doc(txt: String) -> Result<Document> {
         let mut d = Document::default();
-        let mut texts: Vec<String> = Vec::with_capacity(10);
+        let mut texts: Vec<String> = Vec::with_capacity(200);
 
         let splitted = txt
             .split("\n")
