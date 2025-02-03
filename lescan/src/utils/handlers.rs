@@ -8,6 +8,7 @@ use iced::widget::{
 };
 use iced::Task;
 use rsff::balloon::Balloon;
+use rsff::TYPES;
 
 const SUPPORTED_IMG_EXTENSIONS: [&str; 12] = [
     "jpg", "jpeg", "png", "gif", "bmp", "tiff", "webp", "avif", "dds", "ff", "hdr", "ico",
@@ -41,6 +42,11 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
         }
         Message::T1ContentChanged(action) => {
             app.t1_content.perform(action);
+            handle_text_input_balloon_type_selection(
+                &mut app.t1_content,
+                &mut app.translation_document.balloons[app.current_balloon],
+                &mut app.selected_bln_type,
+            );
         }
         Message::T2ContentChanged(action) => {
             app.t2_content.perform(action);
@@ -202,4 +208,44 @@ pub fn editor_kp_bindings(kp: KeyPress) -> Option<Binding<Message>> {
         Binding::from_key_press(kp)
     };
     bnd
+}
+
+fn handle_text_input_balloon_type_selection(
+    text_editor_content: &mut text_editor::Content,
+    current_balloon: &mut Balloon,
+    selected_bln_type: &mut Option<BlnTypes>,
+) {
+    let editor_text = text_editor_content.text();
+
+    if editor_text.starts_with("ST:") {
+        if let Some(stripped) = editor_text.strip_prefix("ST:") {
+            *text_editor_content = text_editor::Content::with_text(stripped);
+            current_balloon.btype = TYPES::ST;
+            *selected_bln_type = Some(BlnTypes::ST);
+        }
+    } else if editor_text.starts_with("OT:") {
+        if let Some(stripped) = editor_text.strip_prefix("OT:") {
+            *text_editor_content = text_editor::Content::with_text(stripped);
+            current_balloon.btype = TYPES::OT;
+            *selected_bln_type = Some(BlnTypes::OT);
+        }
+    } else if editor_text.starts_with("[]:") {
+        if let Some(stripped) = editor_text.strip_prefix("[]:") {
+            *text_editor_content = text_editor::Content::with_text(stripped);
+            current_balloon.btype = TYPES::SQUARE;
+            *selected_bln_type = Some(BlnTypes::Square);
+        }
+    } else if editor_text.starts_with("():") {
+        if let Some(stripped) = editor_text.strip_prefix("():") {
+            *text_editor_content = text_editor::Content::with_text(stripped);
+            current_balloon.btype = TYPES::DIALOGUE;
+            *selected_bln_type = Some(BlnTypes::Dialogue);
+        }
+    } else if editor_text.starts_with("{}:") {
+        if let Some(stripped) = editor_text.strip_prefix("{}:") {
+            *text_editor_content = text_editor::Content::with_text(stripped);
+            current_balloon.btype = TYPES::THINKING;
+            *selected_bln_type = Some(BlnTypes::Thinking);
+        }
+    }
 }
