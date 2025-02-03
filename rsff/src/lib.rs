@@ -19,6 +19,7 @@ use serde::{Deserialize, Serialize};
 
 pub mod balloon;
 pub mod consts;
+mod docx_handlers;
 pub mod img_data;
 mod serde_overwrites;
 
@@ -111,11 +112,19 @@ impl Document {
                     let mut decoder = ZlibDecoder::new(&*compressed);
                     decoder.read_to_string(&mut jsn).unwrap();
                     Ok(Self::json_to_doc(jsn)?)
+                } else if e == OsStr::new("docx") {
+                    Self::docx_to_doc(p)
                 } else {
                     Err("Unsupported file type!".into())
                 }
             }
         }
+    }
+
+    fn docx_to_doc(p: &Path) -> Result<Document> {
+        let docx_str = docx_handlers::parse_docx_to_string(p)?;
+
+        Self::txt_to_doc(docx_str)
     }
 
     // Generate a document from lossy text.
@@ -292,6 +301,15 @@ impl Document {
         f.write_all(&encoded).unwrap();
     }
 
+    // Save as a .docx file
+    fn save_docx(&self, fp: &str) {
+        let f = File::create(format!("{fp}.docx")).unwrap();
+        docx_handlers::string_to_docx(&self.to_string())
+            .build()
+            .pack(f)
+            .unwrap();
+    }
+
     /// Save your document as raw JSON, compressed JSON or .txt file.
     ///
     /// # Examples
@@ -320,6 +338,7 @@ impl Document {
                 f.write_all(self.to_string().as_bytes()).unwrap();
             }
             OUT::ZLIB => self.save_zlib(fp),
+            OUT::DOCX => self.save_docx(fp),
         }
     }
 }
