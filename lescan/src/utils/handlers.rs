@@ -123,6 +123,68 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
                 app.translation_document.images = Some(images_in_path)
             }
         }
+        Message::BalloonTypeCycleDown => {
+            if let Some(current_bln_type) = app.selected_bln_type {
+                let cbi = (BlnTypes::ALL
+                    .iter()
+                    .position(|bt| *bt == current_bln_type)
+                    .unwrap()
+                    + 1)
+                    % BlnTypes::ALL.len();
+                app.selected_bln_type = Some(BlnTypes::ALL[cbi]);
+                app.translation_document.balloons[app.current_balloon].btype = [
+                    TYPES::DIALOGUE,
+                    TYPES::SQUARE,
+                    TYPES::THINKING,
+                    TYPES::ST,
+                    TYPES::OT,
+                ][cbi]
+                    .clone();
+            } else {
+                app.selected_bln_type = Some(BlnTypes::ALL[0]);
+                app.translation_document.balloons[app.current_balloon].btype = [
+                    TYPES::DIALOGUE,
+                    TYPES::SQUARE,
+                    TYPES::THINKING,
+                    TYPES::ST,
+                    TYPES::OT,
+                ][0]
+                .clone()
+            }
+        }
+        Message::BalloonTypeCycleUp => {
+            if let Some(current_bln_type) = app.selected_bln_type {
+                let cbi = BlnTypes::ALL
+                    .iter()
+                    .position(|bt| *bt == current_bln_type)
+                    .unwrap();
+                let cbi = if cbi == 0 {
+                    BlnTypes::ALL.len() - 1
+                } else {
+                    cbi - 1
+                };
+                println!("{cbi}");
+                app.selected_bln_type = Some(BlnTypes::ALL[cbi]);
+                app.translation_document.balloons[app.current_balloon].btype = [
+                    TYPES::DIALOGUE,
+                    TYPES::SQUARE,
+                    TYPES::THINKING,
+                    TYPES::ST,
+                    TYPES::OT,
+                ][cbi]
+                    .clone();
+            } else {
+                app.selected_bln_type = Some(BlnTypes::ALL[0]);
+                app.translation_document.balloons[app.current_balloon].btype = [
+                    TYPES::DIALOGUE,
+                    TYPES::SQUARE,
+                    TYPES::THINKING,
+                    TYPES::ST,
+                    TYPES::OT,
+                ][0]
+                .clone();
+            }
+        }
     }
     Task::none()
 }

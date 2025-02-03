@@ -122,7 +122,7 @@ impl TestApp {
 
     pub fn subscription(&self) -> iced::Subscription<Message> {
         iced::Subscription::batch([
-            iced::keyboard::on_key_press(|k, m| match (k, m) {
+            iced::keyboard::on_key_press(move |k, m| match (k, m) {
                 (iced::keyboard::Key::Named(iced::keyboard::key::Named::Tab), _) => {
                     Some(Message::TabPressed)
                 }
@@ -133,6 +133,14 @@ impl TestApp {
                 (iced::keyboard::Key::Named(iced::keyboard::key::Named::Enter), _) => {
                     Some(Message::EnterPressed)
                 }
+                (
+                    iced::keyboard::Key::Named(iced::keyboard::key::Named::ArrowUp),
+                    iced::keyboard::Modifiers::SHIFT,
+                ) => Some(Message::BalloonTypeCycleUp),
+                (
+                    iced::keyboard::Key::Named(iced::keyboard::key::Named::ArrowDown),
+                    iced::keyboard::Modifiers::SHIFT,
+                ) => Some(Message::BalloonTypeCycleDown),
                 _ => None,
             }),
             iced::event::listen_with(|ev, _status, _window| match ev {

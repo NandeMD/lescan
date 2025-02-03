@@ -14,6 +14,16 @@ pub enum BlnTypes {
     OT,
 }
 
+impl BlnTypes {
+    pub const ALL: [Self; 5] = [
+        BlnTypes::Dialogue,
+        BlnTypes::Square,
+        BlnTypes::Thinking,
+        BlnTypes::ST,
+        BlnTypes::OT,
+    ];
+}
+
 impl std::fmt::Display for BlnTypes {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {

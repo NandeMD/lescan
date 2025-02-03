@@ -21,4 +21,7 @@ pub enum Message {
     ImageTabSelected(usize),
     ImageScrolled(scrollable::Viewport),
     FileDropped(std::path::PathBuf),
+
+    BalloonTypeCycleUp,
+    BalloonTypeCycleDown,
 }
