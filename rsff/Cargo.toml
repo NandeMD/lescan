@@ -1,0 +1,33 @@
+[package]
+name = "rsff"
+version = "1.2.0"
+edition = "2021"
+description = "Core library of an application designed to facilitate the work of teams translating content such as manga, manhwa, manhua, webtoons, etc."
+authors = ["NandeMD"]
+readme = "README.md"
+repository = "https://github.com/NandeMD/rsff"
+license-file = "LICENSE"
+keywords = ["scanlation", "file", "webtoon", "manga", "manhwa"]
+categories = ["parsing"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+base64 = "0.21.4"
+flate2 = "1.0.28"
+image = "0.24.7"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+
+[dev-dependencies]
+criterion = { version = "0.4", features = ["html_reports"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+ron = "0.8"
+serde_yaml = "0.9"
+flexbuffers = "25.1.24"
+
+[[bench]]
+name = "document_benches"
+harness = false

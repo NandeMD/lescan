@@ -67,7 +67,7 @@ impl<'a> table::Column<'a, Message, Theme, Renderer> for BCol {
         row: &'a Self::Row,
     ) -> Element<'a, Message> {
         let content: Element<_> = match self.kind {
-            ColumnKind::Index => text(row_index).into(),
+            ColumnKind::Index => text(row_index + 1).into(),
             ColumnKind::BlImage => {
                 if row.balloon_img.is_some() {
                     checkbox("", true)

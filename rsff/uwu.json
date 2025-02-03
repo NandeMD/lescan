@@ -1,0 +1,22 @@
+{
+  "METADATA_SCRIPT_VERSION": "Scanlation Script File v0.2.0",
+  "METADATA_APP_VERSION": "",
+  "METADATA_INFO": "Num",
+  "balloons": [
+    {
+      "tl_content": ["num", "nam"],
+      "pr_content": ["numnam"],
+      "comments": [],
+      "btype": "OT",
+      "balloon_img": null
+    },
+    {
+      "tl_content": ["num"],
+      "pr_content": [],
+      "comments": [],
+      "btype": "DIALOGUE",
+      "balloon_img": null
+    }
+  ],
+  "images": null
+}

@@ -1,10 +1,3 @@
-[package]
-name = "iced_test"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-iced = { version = "0.13", features = ["lazy", "image"] }
-rsff = "1.2"
-iced_aw = "0.11"
-iced_table = { git = "https://github.com/tarkah/iced_table.git" }
+[workspace]
+resolver = "2"
+members = ["rsff", "lescan"]
