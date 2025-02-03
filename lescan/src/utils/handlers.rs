@@ -88,11 +88,7 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
 
                 if ["sffx", "sffz", "txt"].contains(&ext.as_str()) {
                     app.current_balloon = 0;
-                    app.translation_document = app
-                        .translation_document
-                        .open(path.as_os_str().to_str().unwrap())
-                        .unwrap()
-                        .unwrap();
+                    app.translation_document = rsff::Document::open(&path).unwrap();
                 } else if SUPPORTED_IMG_EXTENSIONS.contains(&ext.as_str()) {
                     let current_bln = app.current_balloon;
                     let new_img_data = std::fs::read(path).unwrap();

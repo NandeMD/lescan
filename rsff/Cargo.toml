@@ -1,6 +1,6 @@
 [package]
 name = "rsff"
-version = "1.2.0"
+version = "0.1.0"
 edition = "2021"
 description = "Core library of an application designed to facilitate the work of teams translating content such as manga, manhwa, manhua, webtoons, etc."
 authors = ["NandeMD"]
@@ -24,10 +24,3 @@ serde_json = "1.0"
 criterion = { version = "0.4", features = ["html_reports"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-ron = "0.8"
-serde_yaml = "0.9"
-flexbuffers = "25.1.24"
-
-[[bench]]
-name = "document_benches"
-harness = false

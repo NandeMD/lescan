@@ -41,7 +41,7 @@ pub struct TestApp {
 
 impl TestApp {
     pub fn new() -> (Self, Task<Message>) {
-        let tl_doc = Document::default().open("test.sffx").unwrap().unwrap();
+        let tl_doc = Document::open("test.sffx").unwrap();
         let current_balloon: usize = 0;
 
         let (t1_content, t2_content, t3_content) = bln_content_creator(&tl_doc, current_balloon);

@@ -22,7 +22,7 @@ pub mod consts;
 pub mod img_data;
 mod serde_overwrites;
 
-type ConvertResult<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 /// A document containing all of your translation data.
 ///
@@ -68,7 +68,7 @@ impl Default for Document {
     /// ```
     fn default() -> Self {
         Self {
-            METADATA_SCRIPT_VERSION: String::from("Scanlation Script File v0.2.0"),
+            METADATA_SCRIPT_VERSION: String::from("Scanlation Script File v0.1.0"),
             METADATA_APP_VERSION: String::new(),
             METADATA_INFO: String::from("Num"),
             balloons: Vec::new(),
@@ -78,6 +78,136 @@ impl Default for Document {
 }
 
 impl Document {
+    /// Open a supported sffx, sffz or txt file and generate a document.
+    ///
+    /// `fp`: full path for the file.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rsff::Document;
+    ///
+    /// let mut d: Document = Document::open("test.sffx").unwrap();
+    /// ```
+    ///
+    /// **Note:** I messed up this absolutely shitty method and will change it in the future definitely.
+    pub fn open<P: ?Sized + AsRef<Path>>(file_path: &P) -> Result<Document> {
+        let p = file_path.as_ref();
+
+        if !p.exists() {
+            return Err("File does not exists!".into());
+        }
+
+        match p.extension() {
+            None => Err("No file ext!".into()),
+            Some(e) => {
+                if e == OsStr::new("txt") {
+                    let text = Self::read_file_to_string(p);
+                    Ok(Self::txt_to_doc(text)?)
+                } else if e == OsStr::new("sffx") {
+                    let jsn = Self::read_file_to_string(p);
+                    Ok(Self::json_to_doc(jsn)?)
+                } else if e == OsStr::new("sffz") {
+                    let compressed = Self::read_file_to_vecu8(p);
+                    let mut jsn = String::new();
+                    let mut decoder = ZlibDecoder::new(&*compressed);
+                    decoder.read_to_string(&mut jsn).unwrap();
+                    Ok(Self::json_to_doc(jsn)?)
+                } else {
+                    Err("Unsupported file type!".into())
+                }
+            }
+        }
+    }
+
+    // Generate a document from lossy text.
+    // Why did i write this?
+    // This is probably most unnecessary code ib this crate.
+    fn txt_to_doc(txt: String) -> Result<Document> {
+        let mut d = Document::default();
+        let mut texts: Vec<String> = Vec::with_capacity(10);
+
+        let splitted = txt
+            .split("\n")
+            .filter(|s| !s.is_empty())
+            .collect::<Vec<&str>>();
+        let mut is_previous_double_slash: bool = false;
+
+        for i in 0..splitted.len() {
+            if splitted[i].contains("//") {
+                continue;
+            }
+
+            let current = splitted[i];
+
+            let mut b = Balloon {
+                btype: Self::decide_b_type_from_txt_line_headers(current),
+                ..Default::default()
+            };
+
+            let next = splitted.get(i + 1).unwrap_or(&"");
+
+            if !next.contains("//") {
+                if is_previous_double_slash {
+                    texts.push(current[4..current.len()].trim().to_string());
+                    b.tl_content = texts.clone();
+                    d.balloons.push(b);
+                    is_previous_double_slash = false;
+                    continue;
+                } else {
+                    b.tl_content
+                        .push(current[4..current.len()].trim().to_string());
+                    d.balloons.push(b);
+                    is_previous_double_slash = false;
+                    continue;
+                }
+            } else {
+                texts.push(current[4..current.len()].trim().to_string());
+                is_previous_double_slash = true;
+            }
+        }
+
+        Ok(d)
+    }
+
+    // Generate a document from JSON string.
+    pub fn json_to_doc(json: String) -> Result<Document> {
+        let d = serde_json::from_str::<Document>(&json)?;
+
+        Ok(d)
+    }
+
+    fn decide_b_type_from_txt_line_headers(ln: &str) -> TYPES {
+        let s = &ln[0..2];
+
+        match s {
+            "()" => TYPES::DIALOGUE,
+            "OT" => TYPES::OT,
+            "[]" => TYPES::SQUARE,
+            "ST" => TYPES::ST,
+            "{}" => TYPES::THINKING,
+            _ => TYPES::DIALOGUE,
+        }
+    }
+
+    // Generate text of the whole document.
+    fn read_file_to_string(p: &Path) -> String {
+        let mut s = String::new();
+        let mut f = File::open(p).unwrap();
+        f.read_to_string(&mut s).unwrap();
+
+        s
+    }
+
+    // Open a file and return it's byte content.
+    fn read_file_to_vecu8(p: &Path) -> Vec<u8> {
+        let mut buff: Vec<u8> = Vec::new();
+        let mut f = File::open(p).unwrap();
+        f.read_to_end(&mut buff).unwrap();
+
+        buff
+    }
+
     /// Total character count of all translation content.
     /// *(Spaces included.)*
     pub fn tl_chars(&self) -> usize {
@@ -192,136 +322,6 @@ impl Document {
                 f.write_all(self.to_string().as_bytes()).unwrap();
             }
             OUT::ZLIB => self.save_zlib(fp),
-        }
-    }
-
-    // Generate text of the whole document.
-    fn file_to_string(&self, p: &Path) -> String {
-        let mut s = String::new();
-        let mut f = File::open(p).unwrap();
-        f.read_to_string(&mut s).unwrap();
-
-        s
-    }
-
-    // Open a file and return it's byte content.
-    fn file_to_bytes(&self, p: &Path) -> Vec<u8> {
-        let mut buff: Vec<u8> = Vec::new();
-        let mut f = File::open(p).unwrap();
-        f.read_to_end(&mut buff).unwrap();
-
-        buff
-    }
-
-    // Generate a document from JSON string.
-    pub fn json_to_doc(&mut self, json: String) -> ConvertResult<Document> {
-        let d = serde_json::from_str::<Document>(&json)?;
-
-        Ok(d)
-    }
-
-    fn decide_b_type_from_txt_line_headers(&self, ln: &str) -> TYPES {
-        let s = &ln[0..2];
-
-        match s {
-            "()" => TYPES::DIALOGUE,
-            "OT" => TYPES::OT,
-            "[]" => TYPES::SQUARE,
-            "ST" => TYPES::ST,
-            "{}" => TYPES::THINKING,
-            _ => TYPES::DIALOGUE,
-        }
-    }
-
-    // Generate a document from lossy text.
-    // Why did i write this?
-    // This is probably most unnecessary code ib this crate.
-    fn txt_to_doc(&self, txt: String) -> ConvertResult<Document> {
-        let mut d = Document::default();
-        let mut texts: Vec<String> = Vec::with_capacity(10);
-
-        let splitted = txt
-            .split("\n")
-            .filter(|s| !s.is_empty())
-            .collect::<Vec<&str>>();
-        let mut is_previous_double_slash: bool = false;
-
-        for i in 0..splitted.len() {
-            if splitted[i].contains("//") {
-                continue;
-            }
-
-            let current = splitted[i];
-
-            let mut b = Balloon {
-                btype: self.decide_b_type_from_txt_line_headers(current),
-                ..Default::default()
-            };
-
-            let next = splitted.get(i + 1).unwrap_or(&"");
-
-            if !next.contains("//") {
-                if is_previous_double_slash {
-                    texts.push(current[4..current.len()].trim().to_string());
-                    b.tl_content = texts.clone();
-                    d.balloons.push(b);
-                    is_previous_double_slash = false;
-                    continue;
-                } else {
-                    b.tl_content
-                        .push(current[4..current.len()].trim().to_string());
-                    d.balloons.push(b);
-                    is_previous_double_slash = false;
-                    continue;
-                }
-            } else {
-                texts.push(current[4..current.len()].trim().to_string());
-                is_previous_double_slash = true;
-            }
-        }
-
-        Ok(d)
-    }
-
-    /// Open a supported sffx, sffz or txt file and generate a document.
-    ///
-    /// `fp`: full path for the file.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use rsff::Document;
-    ///
-    /// let mut d: Document = Document::default().open("test.sffx").unwrap().unwrap();
-    /// ```
-    ///
-    /// **Note:** I messed up this absolutely shitty method and will change it in the future definitely.
-    pub fn open(&mut self, fp: &str) -> Result<ConvertResult<Document>, &str> {
-        let p = Path::new(fp);
-
-        if !p.exists() {
-            return Err("File does not exists!");
-        }
-
-        match p.extension() {
-            None => Err("No file ext!"),
-            Some(e) => {
-                if e == OsStr::new("txt") {
-                    let text = self.file_to_string(p);
-                    Ok(self.txt_to_doc(text))
-                } else if e == OsStr::new("sffx") {
-                    let jsn = self.file_to_string(p);
-                    Ok(self.json_to_doc(jsn))
-                } else if e == OsStr::new("sffz") {
-                    let compressed = self.file_to_bytes(p);
-                    let mut jsn = String::new();
-                    let mut decoder = ZlibDecoder::new(&*compressed);
-                    decoder.read_to_string(&mut jsn).unwrap();
-                    Ok(self.json_to_doc(jsn))
-                } else {
-                    Err("Unsupported file type!")
-                }
-            }
         }
     }
 }
@@ -443,7 +443,7 @@ mod document_related {
 
     #[test]
     fn document_open_txt() {
-        let d = Document::default().open("test.txt").unwrap().unwrap();
+        let d = Document::open("test.txt").unwrap();
 
         assert_eq!(d.line_count(), 2);
         assert_eq!(d.balloons.len(), 2);
@@ -455,8 +455,7 @@ mod document_related {
 
     #[test]
     fn document_unsupported_file_ext() {
-        let mut d = Document::default();
-        let r = d.open("test.test");
+        let r = Document::open("test.test");
         assert!(r.is_err())
     }
 }
