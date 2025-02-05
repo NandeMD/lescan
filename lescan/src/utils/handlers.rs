@@ -330,4 +330,20 @@ fn clipboard_img_paste(app: &mut TestApp) {
             }
         }
     }
+
+    #[cfg(not(target_os = "windows"))]
+    {
+        use clipboard_rs::{common::RustImage, Clipboard, ClipboardContext};
+        if let Ok(clipboard) = ClipboardContext::new() {
+            if let Ok(rust_img) = clipboard.get_image() {
+                // let _ = rust_img.to_bitmap().unwrap();
+
+                if let Ok(img_png) = rust_img.to_png() {
+                    let img_data = img_png.get_bytes().to_vec();
+                    app.translation_document.balloons[app.current_balloon]
+                        .add_image("png".into(), img_data);
+                }
+            }
+        }
+    }
 }

@@ -11,3 +11,6 @@ iced_table = { git = "https://github.com/tarkah/iced_table.git" }
 
 [target.'cfg(windows)'.dependencies]
 clipboard-win = "5.4"
+
+[target.'cfg(not(windows))'.dependencies]
+clipboard-rs = { git = "https://github.com/ChurchTao/clipboard-rs.git" }

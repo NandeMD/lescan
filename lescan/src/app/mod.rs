@@ -2,6 +2,7 @@ pub mod widgets;
 
 use iced::widget::{self, column, pane_grid, scrollable, text_editor};
 use iced::{Element, Length, Task, Theme};
+use iced_aw::menu::*;
 use rsff::Document;
 
 use crate::message::Message;
@@ -41,7 +42,8 @@ pub struct TestApp {
 
 impl TestApp {
     pub fn new() -> (Self, Task<Message>) {
-        let tl_doc = Document::open("test.sffx").unwrap();
+        let mut tl_doc = Document::default();
+        tl_doc.add_balloon_empty();
         let current_balloon: usize = 0;
 
         let (t1_content, t2_content, t3_content) = bln_content_creator(&tl_doc, current_balloon);
@@ -103,6 +105,19 @@ impl TestApp {
     }
 
     pub fn view(&self) -> Element<Message> {
+        let menu_files = Item::with_menu(
+            iced::widget::button("File"),
+            Menu::new(
+                [
+                    Item::new(iced::widget::button("Open")),
+                    Item::new(iced::widget::button("Save")),
+                ]
+                .into(),
+            ),
+        );
+
+        let menu_bar = MenuBar::new(vec![menu_files]).width(iced::Length::Fill);
+
         let pg = main_content_pane_grid(self);
 
         let footer_text = format!(
@@ -117,7 +132,7 @@ impl TestApp {
             .width(Length::Fill)
             .height(Length::Fixed(30.0));
 
-        column![pg, ftr].spacing(10).padding(10).into()
+        column![menu_bar, pg, ftr].spacing(10).padding(10).into()
     }
 
     pub fn subscription(&self) -> iced::Subscription<Message> {

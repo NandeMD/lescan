@@ -449,6 +449,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1fd0f2584146f6f2ef48085050886acf353beff7305ebd1ae69500e27c67f64b"
 
 [[package]]
+name = "byteorder-lite"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8f1fe948ff07f4bd06c30984e69f5b4899c516a3ef74f34df92a2df2ab535495"
+
+[[package]]
 name = "bytes"
 version = "1.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -584,12 +590,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "clipboard-rs"
+version = "0.2.2"
+source = "git+https://github.com/ChurchTao/clipboard-rs.git#460ec384eb164f66ee802149a92f240353a0334c"
+dependencies = [
+ "clipboard-win",
+ "image 0.25.5",
+ "objc2",
+ "objc2-app-kit",
+ "objc2-foundation",
+ "x11rb",
+]
+
+[[package]]
 name = "clipboard-win"
 version = "5.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "15efe7a882b08f34e38556b14f2fb3daa98769d06c7f0c1b076dfd0d983bc892"
 dependencies = [
  "error-code",
+ "windows-win",
 ]
 
 [[package]]
@@ -1030,7 +1050,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e593b51d4fe95d69d70fd40da4b314b029736302c986c3c760826e842fd27dc3"
 dependencies = [
  "base64 0.13.1",
- "image",
+ "image 0.24.9",
  "serde",
  "serde_json",
  "thiserror",
@@ -1712,7 +1732,7 @@ dependencies = [
  "iced_renderer",
  "iced_widget",
  "iced_winit",
- "image",
+ "image 0.24.9",
  "thiserror",
 ]
 
@@ -1799,7 +1819,7 @@ dependencies = [
  "half",
  "iced_core",
  "iced_futures",
- "image",
+ "image 0.24.9",
  "kamadak-exif",
  "log",
  "lyon_path",
@@ -1849,6 +1869,7 @@ dependencies = [
 name = "iced_test"
 version = "0.1.0"
 dependencies = [
+ "clipboard-rs",
  "clipboard-win",
  "iced",
  "iced_aw",
@@ -1945,6 +1966,21 @@ dependencies = [
  "png",
  "qoi",
  "tiff",
+]
+
+[[package]]
+name = "image"
+version = "0.25.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cd6f44aed642f18953a158afeb30206f4d50da59fbc66ecb53c66488de73563b"
+dependencies = [
+ "bytemuck",
+ "byteorder-lite",
+ "num-traits",
+ "png",
+ "tiff",
+ "zune-core",
+ "zune-jpeg",
 ]
 
 [[package]]
@@ -3204,7 +3240,7 @@ dependencies = [
  "docx-rs",
  "docx-rust",
  "flate2",
- "image",
+ "image 0.24.9",
  "serde",
  "serde_json",
 ]
@@ -4359,6 +4395,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "windows-win"
+version = "3.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "58e23e33622b3b52f948049acbec9bcc34bf6e26d74176b88941f213c75cf2dc"
+dependencies = [
+ "error-code",
+]
+
+[[package]]
 name = "windows_aarch64_gnullvm"
 version = "0.42.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4778,12 +4823,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "zune-core"
+version = "0.4.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3f423a2c17029964870cfaabb1f13dfab7d092a62a29a89264f4d36990ca414a"
+
+[[package]]
 name = "zune-inflate"
 version = "0.2.54"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "73ab332fe2f6680068f3582b16a24f90ad7096d5d39b974d1c0aff0125116f02"
 dependencies = [
  "simd-adler32",
+]
+
+[[package]]
+name = "zune-jpeg"
+version = "0.4.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "99a5bab8d7dedf81405c4bb1f2b83ea057643d9cb28778cea9eecddeedd2e028"
+dependencies = [
+ "zune-core",
 ]
 
 [[package]]
