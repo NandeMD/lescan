@@ -1,4 +1,5 @@
 pub mod balloons_table;
+pub mod document_img_viewer;
 pub mod footer;
 pub mod main_content;
-pub mod document_img_viewer;
+pub mod top_menu;

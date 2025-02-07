@@ -25,4 +25,13 @@ pub enum Message {
     BalloonTypeCycleUp,
     BalloonTypeCycleDown,
     CurrentBlnImgPaste,
+
+    FileOperation(FileOperation),
+}
+
+#[derive(Debug, Clone)]
+pub enum FileOperation {
+    Open,
+    Save,
+    SaveAs,
 }

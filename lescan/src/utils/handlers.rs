@@ -1,6 +1,6 @@
 use crate::app::widgets::main_content::BlnTypes;
 use crate::app::TestApp;
-use crate::message::Message;
+use crate::message::*;
 use iced::keyboard::key::{Key, Named};
 use iced::widget::{
     self,
@@ -191,6 +191,19 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
             }
         }
         Message::CurrentBlnImgPaste => clipboard_img_paste(app),
+        Message::FileOperation(file_op) => match file_op {
+            FileOperation::Open => {
+                let fd = rfd::FileDialog::new()
+                    .add_filter("RSFF", &["txt", "sffx", "sffz"])
+                    .set_title("Open a scanlation file.")
+                    .pick_file();
+                if let Some(f_p_b) = fd {
+                    return Task::done(Message::FileDropped(f_p_b));
+                }
+            }
+            FileOperation::Save => {}
+            FileOperation::SaveAs => {}
+        },
     }
     Task::none()
 }

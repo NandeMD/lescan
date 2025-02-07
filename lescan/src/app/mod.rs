@@ -2,8 +2,12 @@ pub mod widgets;
 
 use iced::widget::{self, column, pane_grid, scrollable, text_editor};
 use iced::{Element, Length, Task, Theme};
-use iced_aw::menu::*;
+use iced_aw::{
+    menu::{Item, Menu},
+    menu_bar, menu_items,
+};
 use rsff::Document;
+use widgets::top_menu::*;
 
 use crate::message::Message;
 use crate::utils::bln::bln_content_creator;
@@ -12,6 +16,7 @@ use crate::utils::handlers::*;
 use widgets::balloons_table::*;
 use widgets::footer::footer;
 use widgets::main_content::{main_content_pane_grid, Pane};
+
 pub struct TestApp {
     pub translation_document: Document,
 
@@ -105,18 +110,18 @@ impl TestApp {
     }
 
     pub fn view(&self) -> Element<Message> {
-        let menu_files = Item::with_menu(
-            iced::widget::button("File"),
-            Menu::new(
-                [
-                    Item::new(iced::widget::button("Open")),
-                    Item::new(iced::widget::button("Save")),
-                ]
-                .into(),
-            ),
-        );
+        let menu_tpl_1 = |items| Menu::new(items).max_width(180.0).offset(15.0).spacing(5.0);
+        //let menu_tpl_2 = |items| Menu::new(items).max_width(180.0).offset(0.0).spacing(5.0);
 
-        let menu_bar = MenuBar::new(vec![menu_files]).width(iced::Length::Fill);
+        #[rustfmt::skip]
+        let mb = menu_bar!(
+            (menu_main_button("Files"), menu_tpl_1(menu_items!(
+                (separator())
+                (menu_sub_button_file_open())
+                (menu_sub_button_file_save())
+                (menu_sub_button_file_save_as())
+            )))
+        );
 
         let pg = main_content_pane_grid(self);
 
@@ -132,7 +137,7 @@ impl TestApp {
             .width(Length::Fill)
             .height(Length::Fixed(30.0));
 
-        column![menu_bar, pg, ftr].spacing(10).padding(10).into()
+        column![mb, pg, ftr].spacing(10).padding(10).into()
     }
 
     pub fn subscription(&self) -> iced::Subscription<Message> {
