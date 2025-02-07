@@ -1,8 +1,6 @@
 use crate::message::{FileOperation, Message};
-use iced::border::Radius;
 use iced::widget::{button, text};
-use iced::{alignment, Border, Color, Element, Length};
-use iced_aw::{quad, widget::InnerBounds};
+use iced::{alignment, Element, Length};
 
 fn base_menu_button<'a>(
     content: impl Into<Element<'a, Message>>,
@@ -42,18 +40,7 @@ pub fn menu_sub_button_file_save_as<'a>() -> button::Button<'a, Message, iced::T
 }
 
 pub fn menu_main_button(label: &str) -> button::Button<Message, iced::Theme, iced::Renderer> {
-    labeled_button(label, Message::FileOperation(FileOperation::Open)).width(Length::Shrink)
-}
-
-pub fn separator() -> quad::Quad {
-    quad::Quad {
-        quad_color: Color::from([0.5; 3]).into(),
-        quad_border: Border {
-            radius: Radius::new(4.0),
-            ..Default::default()
-        },
-        inner_bounds: InnerBounds::Ratio(0.98, 0.2),
-        height: Length::Fixed(20.0),
-        ..Default::default()
-    }
+    labeled_button(label, Message::FileOperation(FileOperation::Open))
+        .width(Length::Shrink)
+        .on_press_maybe(None)
 }

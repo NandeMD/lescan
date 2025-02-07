@@ -116,7 +116,6 @@ impl TestApp {
         #[rustfmt::skip]
         let mb = menu_bar!(
             (menu_main_button("Files"), menu_tpl_1(menu_items!(
-                (separator())
                 (menu_sub_button_file_open())
                 (menu_sub_button_file_save())
                 (menu_sub_button_file_save_as())
