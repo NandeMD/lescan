@@ -287,27 +287,29 @@ impl Document {
     }
 
     // Save as a raw JSON file.
-    fn save_raw(&self, fp: &str) {
-        let mut file = File::create(format!("{fp}.sffx")).unwrap();
-        file.write_all(self.to_json().as_bytes()).unwrap();
+    fn save_raw(&self, fp: impl Into<std::path::PathBuf>) -> std::io::Result<()> {
+        let mut file = File::create(fp.into())?;
+        file.write_all(self.to_json().as_bytes())?;
+        Ok(())
     }
 
     // Save as a compressed JSON file.
-    fn save_zlib(&self, fp: &str) {
-        let mut f = File::create(format!("{fp}.sffz")).unwrap();
+    fn save_zlib(&self, fp: impl Into<std::path::PathBuf>) -> std::io::Result<()> {
+        let mut f = File::create(fp.into())?;
         let mut enc = ZlibEncoder::new(Vec::new(), Compression::best());
-        enc.write_all(self.to_json().as_bytes()).unwrap();
-        let encoded = enc.finish().unwrap();
-        f.write_all(&encoded).unwrap();
+        enc.write_all(self.to_json().as_bytes())?;
+        let encoded = enc.finish()?;
+        f.write_all(&encoded)?;
+        Ok(())
     }
 
     // Save as a .docx file
-    fn save_docx(&self, fp: &str) {
-        let f = File::create(format!("{fp}.docx")).unwrap();
+    fn save_docx(&self, fp: impl Into<std::path::PathBuf>) -> std::io::Result<()> {
+        let f = File::create(fp.into())?;
         docx_handlers::string_to_docx(&self.to_string())
             .build()
-            .pack(f)
-            .unwrap();
+            .pack(f)?;
+        Ok(())
     }
 
     /// Save your document as raw JSON, compressed JSON or .txt file.
@@ -329,17 +331,33 @@ impl Document {
     /// // Save as raw text:
     /// d.save(OUT::TXT, "raw_text");
     /// ```
-    pub fn save(&self, out_type: OUT, fp: &str) {
-        match out_type {
-            OUT::RAW => self.save_raw(fp),
-            OUT::TXT => {
-                let f_name = format!("{}.txt", fp);
-                let mut f = File::create(f_name).unwrap();
-                f.write_all(self.to_string().as_bytes()).unwrap();
+    pub fn save(&self, fp: impl Into<std::path::PathBuf>) -> std::io::Result<String> {
+        let mut pb: std::path::PathBuf = fp.into();
+        let out_type = {
+            if let Some(ext) = pb.extension() {
+                match ext.to_str().unwrap() {
+                    "txt" => OUT::TXT,
+                    "docx" => OUT::DOCX,
+                    "sffx" => OUT::RAW,
+                    "sffz" => OUT::ZLIB,
+                    _ => return Err(std::io::Error::other("Unsupported Extension!")),
+                }
+            } else {
+                pb.set_extension("sffz");
+                OUT::ZLIB
             }
-            OUT::ZLIB => self.save_zlib(fp),
-            OUT::DOCX => self.save_docx(fp),
+        };
+
+        match out_type {
+            OUT::RAW => self.save_raw(pb.clone())?,
+            OUT::TXT => {
+                let mut f = File::create(pb.clone())?;
+                f.write_all(self.to_string().as_bytes())?;
+            }
+            OUT::ZLIB => self.save_zlib(pb.clone())?,
+            OUT::DOCX => self.save_docx(pb.clone())?,
         }
+        Ok(pb.display().to_string())
     }
 }
 

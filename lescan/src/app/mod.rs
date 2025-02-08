@@ -43,6 +43,8 @@ pub struct TestApp {
     pub current_img_tab: usize,
     pub img_scroller: scrollable::Id,
     pub img_scroller_current_scroll: scrollable::RelativeOffset,
+
+    pub document_file_location: Option<String>,
 }
 
 impl TestApp {
@@ -98,6 +100,8 @@ impl TestApp {
                 current_img_tab: 0,
                 img_scroller: scrollable::Id::unique(),
                 img_scroller_current_scroll: scrollable::RelativeOffset::START,
+
+                document_file_location: None,
             },
             widget::focus_next(),
         )

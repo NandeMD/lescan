@@ -201,7 +201,22 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
                     return Task::done(Message::FileDropped(f_p_b));
                 }
             }
-            FileOperation::Save => {}
+            FileOperation::Save => {
+                let save_location = {
+                    if let Some(ref location) = app.document_file_location {
+                        Some(std::path::PathBuf::from(location))
+                    } else {
+                        rfd::FileDialog::new()
+                            .add_filter("RSFF", &["sffz"])
+                            .set_title("Save a scanlation file.")
+                            .pick_file()
+                    }
+                };
+
+                if let Some(save_location) = save_location {
+                    let save_res = app.translation_document.save(save_location);
+                }
+            }
             FileOperation::SaveAs => {}
         },
     }
