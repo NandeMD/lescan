@@ -204,18 +204,33 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
             FileOperation::Save => {
                 let save_location = {
                     if let Some(ref location) = app.document_file_location {
+                        println!("save location found from app");
                         Some(std::path::PathBuf::from(location))
                     } else {
+                        println!("save location picking from file");
                         rfd::FileDialog::new()
                             .add_filter("RSFF", &["sffz"])
                             .set_title("Save a scanlation file.")
-                            .pick_file()
+                            .save_file()
                     }
                 };
 
+                println!("save location set to: {:?}", save_location);
+
                 if let Some(save_location) = save_location {
-                    let save_res = app.translation_document.save(save_location);
+                    println!("Saving to {save_location:?}!!");
+                    let save_res = app.translation_document.save(&save_location);
+
+                    if let Err(save_error) = &save_res {
+                        rfd::MessageDialog::new()
+                            .set_description(format!("{}\n{}", save_location.display(), save_error))
+                            .set_title("Error While Saving")
+                            .show();
+                    } else {
+                        app.document_file_location = Some(save_location.display().to_string())
+                    }
                 }
+                println!("save finished");
             }
             FileOperation::SaveAs => {}
         },
