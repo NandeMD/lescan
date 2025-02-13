@@ -31,6 +31,7 @@ pub enum Message {
 
 #[derive(Debug, Clone)]
 pub enum FileOperation {
+    New,
     Open,
     Save,
     SaveAs,

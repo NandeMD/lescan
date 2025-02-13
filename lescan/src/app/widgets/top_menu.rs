@@ -26,6 +26,10 @@ fn menu_sub_button(
     labeled_button(label, msg).width(Length::Fill)
 }
 
+pub fn menu_sub_button_file_new<'a>() -> button::Button<'a, Message, iced::Theme, iced::Renderer> {
+    menu_sub_button("New", Message::FileOperation(FileOperation::New))
+}
+
 pub fn menu_sub_button_file_open<'a>() -> button::Button<'a, Message, iced::Theme, iced::Renderer> {
     menu_sub_button("Open", Message::FileOperation(FileOperation::Open))
 }

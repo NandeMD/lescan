@@ -100,6 +100,7 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
                 if ["sffx", "sffz", "txt"].contains(&ext.as_str()) {
                     app.current_balloon = 0;
                     app.translation_document = rsff::Document::open(&path).unwrap();
+                    app.document_file_location = Some(path.display().to_string());
                 } else if SUPPORTED_IMG_EXTENSIONS.contains(&ext.as_str()) {
                     let current_bln = app.current_balloon;
                     let new_img_data = std::fs::read(path).unwrap();
@@ -192,6 +193,25 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
         }
         Message::CurrentBlnImgPaste => clipboard_img_paste(app),
         Message::FileOperation(file_op) => match file_op {
+            FileOperation::New => {
+                let do_you_want_to = rfd::MessageDialog::new()
+                    .set_level(rfd::MessageLevel::Warning)
+                    .set_buttons(rfd::MessageButtons::YesNo)
+                    .set_title("New Translation Document")
+                    .set_description("Do you want to create a new translation document? All unsaved changes will be lost.")
+                    .show();
+
+                if do_you_want_to == rfd::MessageDialogResult::Yes {
+                    app.selected_bln_type = Some(BlnTypes::Dialogue);
+                    app.t1_content = text_editor::Content::default();
+                    app.t2_content = text_editor::Content::default();
+                    app.t3_content = text_editor::Content::default();
+                    app.current_balloon = 0;
+                    app.current_img_tab = 0;
+                    app.document_file_location = None;
+                    app.translation_document = rsff::Document::default();
+                }
+            }
             FileOperation::Open => {
                 let fd = rfd::FileDialog::new()
                     .add_filter("RSFF", &["txt", "sffx", "sffz"])
@@ -204,21 +224,45 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
             FileOperation::Save => {
                 let save_location = {
                     if let Some(ref location) = app.document_file_location {
-                        println!("save location found from app");
                         Some(std::path::PathBuf::from(location))
                     } else {
-                        println!("save location picking from file");
                         rfd::FileDialog::new()
                             .add_filter("RSFF", &["sffz"])
                             .set_title("Save a scanlation file.")
+                            .set_can_create_directories(true)
+                            .set_file_name("scan.sffz")
                             .save_file()
                     }
                 };
 
-                println!("save location set to: {:?}", save_location);
+                if let Some(save_location) = save_location {
+                    let save_res = app.translation_document.save(&save_location);
+
+                    #[cfg(debug_assertions)]
+                    println!("Saved to {:?}", save_location);
+
+                    if let Err(save_error) = &save_res {
+                        rfd::MessageDialog::new()
+                            .set_description(format!("{}\n{}", save_location.display(), save_error))
+                            .set_title("Error While Saving")
+                            .show();
+                    } else {
+                        app.document_file_location = Some(save_location.display().to_string())
+                    }
+                }
+            }
+            FileOperation::SaveAs => {
+                let save_location = rfd::FileDialog::new()
+                    .add_filter("Compressed Scanlation File (default)", &["sffz"])
+                    .add_filter("Scanlation File", &["sffx"])
+                    .add_filter("Text File", &["txt"])
+                    .add_filter("Word Document", &["docx"])
+                    .set_title("Save a scanlation file.")
+                    .set_can_create_directories(true)
+                    .set_file_name("scan.sffz")
+                    .save_file();
 
                 if let Some(save_location) = save_location {
-                    println!("Saving to {save_location:?}!!");
                     let save_res = app.translation_document.save(&save_location);
 
                     if let Err(save_error) = &save_res {
@@ -230,9 +274,7 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
                         app.document_file_location = Some(save_location.display().to_string())
                     }
                 }
-                println!("save finished");
             }
-            FileOperation::SaveAs => {}
         },
     }
     Task::none()
