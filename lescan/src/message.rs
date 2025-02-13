@@ -18,7 +18,7 @@ pub enum Message {
     PaneGridDragged(pane_grid::DragEvent),
     PaneGridResized(pane_grid::ResizeEvent),
 
-    ImageTabSelected(usize),
+    ImageTabSelected(crate::utils::tabs::ImageTabs),
     ImageScrolled(scrollable::Viewport),
     FileDropped(std::path::PathBuf),
 

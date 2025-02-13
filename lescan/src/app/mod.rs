@@ -12,6 +12,7 @@ use widgets::top_menu::*;
 use crate::message::Message;
 use crate::utils::bln::bln_content_creator;
 use crate::utils::handlers::*;
+use crate::utils::{panes::MainPanes, tabs::ImageTabs};
 
 use widgets::balloons_table::*;
 use widgets::footer::footer;
@@ -40,7 +41,7 @@ pub struct TestApp {
     pub table_body_scroller: scrollable::Id,
     pub table_footer_scroller: scrollable::Id,
 
-    pub current_img_tab: usize,
+    pub current_img_tab: ImageTabs,
     pub img_scroller: scrollable::Id,
     pub img_scroller_current_scroll: scrollable::RelativeOffset,
 
@@ -61,10 +62,16 @@ impl TestApp {
             a: Box::new(pane_grid::Configuration::Split {
                 axis: pane_grid::Axis::Vertical,
                 ratio: 0.5,
-                a: Box::new(pane_grid::Configuration::Pane(Pane { id: 0 })),
-                b: Box::new(pane_grid::Configuration::Pane(Pane { id: 1 })),
+                a: Box::new(pane_grid::Configuration::Pane(Pane {
+                    id: MainPanes::Image,
+                })),
+                b: Box::new(pane_grid::Configuration::Pane(Pane {
+                    id: MainPanes::Editor,
+                })),
             }),
-            b: Box::new(pane_grid::Configuration::Pane(Pane { id: 2 })),
+            b: Box::new(pane_grid::Configuration::Pane(Pane {
+                id: MainPanes::Table,
+            })),
         };
 
         let panes = pane_grid::State::with_configuration(pane_config);
@@ -97,7 +104,7 @@ impl TestApp {
                 table_body_scroller: scrollable::Id::unique(),
                 table_footer_scroller: scrollable::Id::unique(),
 
-                current_img_tab: 0,
+                current_img_tab: ImageTabs::Document,
                 img_scroller: scrollable::Id::unique(),
                 img_scroller_current_scroll: scrollable::RelativeOffset::START,
 

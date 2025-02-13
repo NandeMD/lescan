@@ -10,6 +10,8 @@ use iced::Task;
 use rsff::balloon::Balloon;
 use rsff::TYPES;
 
+use super::tabs::ImageTabs;
+
 const SUPPORTED_IMG_EXTENSIONS: [&str; 12] = [
     "jpg", "jpeg", "png", "gif", "bmp", "tiff", "webp", "avif", "dds", "ff", "hdr", "ico",
 ];
@@ -218,7 +220,7 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
                 app.t2_content = text_editor::Content::default();
                 app.t3_content = text_editor::Content::default();
                 app.current_balloon = 0;
-                app.current_img_tab = 0;
+                app.current_img_tab = ImageTabs::Document;
                 app.document_file_location = None;
                 app.translation_document = rsff::Document::default();
                 app.translation_document.add_balloon_empty();

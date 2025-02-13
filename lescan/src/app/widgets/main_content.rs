@@ -1,7 +1,10 @@
 use super::document_img_viewer::generate_image_viewer;
 use crate::message::Message;
 use crate::utils::handlers::editor_kp_bindings;
-use iced::widget::{column, container, pane_grid, pick_list, responsive, text, text_editor};
+use crate::utils::{panes::MainPanes, tabs::ImageTabs};
+use iced::widget::{
+    column, container, mouse_area, pane_grid, pick_list, responsive, text, text_editor,
+};
 use iced::{Fill, Length};
 use iced_table::table;
 
@@ -40,10 +43,9 @@ pub fn main_content_pane_grid(app: &crate::app::TestApp) -> pane_grid::PaneGrid<
     pane_grid::PaneGrid::new(&app.panes, move |_id, pane, _is_max| {
         let title_bar = pane_grid::TitleBar::new(
             container(match pane.id {
-                0 => text!("Images"),
-                1 => text!("Editor"),
-                2 => text!("Balloons"),
-                _ => panic!("Wut id is dis?!"),
+                MainPanes::Image => text!("Images"),
+                MainPanes::Editor => text!("Editor"),
+                MainPanes::Table => text!("Balloons"),
             })
             .padding(10)
             .style(|_| {
@@ -67,18 +69,23 @@ pub fn main_content_pane_grid(app: &crate::app::TestApp) -> pane_grid::PaneGrid<
         );
 
         pane_grid::Content::new(match pane.id {
-            0 => {
+            MainPanes::Image => {
                 let tab_br = iced_aw::TabBar::new(Message::ImageTabSelected)
                     .push(
-                        0,
+                        ImageTabs::Document,
                         iced_aw::TabLabel::IconText('\u{1F5CE}', "Document".into()),
                     )
-                    .push(1, iced_aw::TabLabel::IconText('\u{1F5BC}', "Image".into()))
+                    .push(
+                        ImageTabs::Balloon,
+                        iced_aw::TabLabel::IconText('\u{1F5BC}', "Image".into()),
+                    )
                     .set_active_tab(&app.current_img_tab);
 
                 let cnt = match app.current_img_tab {
-                    0 => container(generate_image_viewer(app)).center(Length::Fill),
-                    1 => if let Some(img) =
+                    ImageTabs::Document => {
+                        container(generate_image_viewer(app)).center(Length::Fill)
+                    }
+                    ImageTabs::Balloon => if let Some(img) =
                         &app.translation_document.balloons[app.current_balloon].balloon_img
                     {
                         let img_handle =
@@ -92,12 +99,11 @@ pub fn main_content_pane_grid(app: &crate::app::TestApp) -> pane_grid::PaneGrid<
                         container(text!("No image for this balloon"))
                     }
                     .center(Length::Fill),
-                    _ => panic!("WHAT TAB IS DIS?!"),
                 };
 
                 container(column![tab_br, cnt].spacing(10).padding(10))
             }
-            1 => {
+            MainPanes::Editor => {
                 let bln_type_picker = pick_list(
                     [
                         BlnTypes::Dialogue,
@@ -134,7 +140,7 @@ pub fn main_content_pane_grid(app: &crate::app::TestApp) -> pane_grid::PaneGrid<
                 container(column![bln_type_picker, editor_1, editor_2, editor_3].spacing(3))
                     .center(Length::Fill)
             }
-            2 => {
+            MainPanes::Table => {
                 let table = responsive(|size| {
                     let t = table(
                         app.table_header_scroller.clone(),
@@ -149,9 +155,8 @@ pub fn main_content_pane_grid(app: &crate::app::TestApp) -> pane_grid::PaneGrid<
 
                     t.into()
                 });
-                container(table)
+                container(mouse_area(table))
             }
-            _ => panic!("What is dis pane?!"),
         })
         .title_bar(title_bar)
     })
@@ -163,5 +168,5 @@ pub fn main_content_pane_grid(app: &crate::app::TestApp) -> pane_grid::PaneGrid<
 
 #[derive(Debug, Clone, Copy)]
 pub struct Pane {
-    pub id: usize,
+    pub id: MainPanes,
 }
