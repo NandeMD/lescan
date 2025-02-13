@@ -33,6 +33,8 @@ pub enum Message {
 pub enum FileOperation {
     New,
     Open,
-    Save,
-    SaveAs,
+    Save(Option<std::path::PathBuf>),
+    SaveFileDialog,
+    SaveAsFileDialog,
+    NewFileDialog,
 }

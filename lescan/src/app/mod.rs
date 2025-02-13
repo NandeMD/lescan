@@ -172,7 +172,9 @@ impl TestApp {
                     if c == "v" && m.control() || m.command() {
                         Some(Message::CurrentBlnImgPaste)
                     } else if c == "s" && m.control() || m.command() {
-                        Some(Message::FileOperation(crate::message::FileOperation::Save))
+                        Some(Message::FileOperation(
+                            crate::message::FileOperation::SaveFileDialog,
+                        ))
                     } else {
                         None
                     }

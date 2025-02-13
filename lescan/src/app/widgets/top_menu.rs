@@ -27,7 +27,7 @@ fn menu_sub_button(
 }
 
 pub fn menu_sub_button_file_new<'a>() -> button::Button<'a, Message, iced::Theme, iced::Renderer> {
-    menu_sub_button("New", Message::FileOperation(FileOperation::New))
+    menu_sub_button("New", Message::FileOperation(FileOperation::NewFileDialog))
 }
 
 pub fn menu_sub_button_file_open<'a>() -> button::Button<'a, Message, iced::Theme, iced::Renderer> {
@@ -35,12 +35,18 @@ pub fn menu_sub_button_file_open<'a>() -> button::Button<'a, Message, iced::Them
 }
 
 pub fn menu_sub_button_file_save<'a>() -> button::Button<'a, Message, iced::Theme, iced::Renderer> {
-    menu_sub_button("Save", Message::FileOperation(FileOperation::Save))
+    menu_sub_button(
+        "Save",
+        Message::FileOperation(FileOperation::SaveFileDialog),
+    )
 }
 
 pub fn menu_sub_button_file_save_as<'a>() -> button::Button<'a, Message, iced::Theme, iced::Renderer>
 {
-    menu_sub_button("Save As", Message::FileOperation(FileOperation::SaveAs))
+    menu_sub_button(
+        "Save As",
+        Message::FileOperation(FileOperation::SaveAsFileDialog),
+    )
 }
 
 pub fn menu_main_button(label: &str) -> button::Button<Message, iced::Theme, iced::Renderer> {
