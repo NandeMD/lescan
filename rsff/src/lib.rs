@@ -8,7 +8,7 @@ pub use consts::{OUT, TYPES};
 
 use std::ffi::OsStr;
 use std::fs::File;
-use std::io::{Read, Write};
+use std::io::{Cursor, Read, Write};
 use std::path::Path;
 
 use flate2::read::ZlibDecoder;
@@ -22,6 +22,12 @@ pub mod consts;
 mod docx_handlers;
 pub mod img_data;
 mod serde_overwrites;
+
+#[cfg(feature = "async-io")]
+use tokio::{
+    fs,
+    io::{AsyncReadExt, AsyncWriteExt},
+};
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
@@ -113,7 +119,8 @@ impl Document {
                     decoder.read_to_string(&mut jsn).unwrap();
                     Ok(Self::json_to_doc(jsn)?)
                 } else if e == OsStr::new("docx") {
-                    Self::docx_to_doc(p)
+                    let f = File::open(p)?;
+                    Self::docx_to_doc(f)
                 } else {
                     Err("Unsupported file type!".into())
                 }
@@ -121,8 +128,55 @@ impl Document {
         }
     }
 
-    fn docx_to_doc(p: &Path) -> Result<Document> {
-        let docx_str = docx_handlers::parse_docx_to_string(p)?;
+    /// Async version of `open` function.
+    /// Open a supported sffx, sffz or txt file and generate a document.
+    ///
+    /// `fp`: full path for the file.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rsff::Document;
+    ///
+    /// let mut d: Document = Document::open("test.sffx").await.unwrap();
+    /// ```
+    #[cfg(feature = "async-io")]
+    pub async fn open_async<P: ?Sized + AsRef<Path>>(file_path: &P) -> Result<Document> {
+        let p = file_path.as_ref();
+
+        if !p.exists() {
+            return Err("File does not exists!".into());
+        }
+
+        match p.extension() {
+            None => Err("No file ext!".into()),
+            Some(e) => {
+                if e == OsStr::new("txt") {
+                    let text = Self::async_read_file_to_string(p).await;
+                    Ok(Self::txt_to_doc(text)?)
+                } else if e == OsStr::new("sffx") {
+                    let jsn = Self::async_read_file_to_string(p).await;
+                    Ok(Self::json_to_doc(jsn)?)
+                } else if e == OsStr::new("sffz") {
+                    let compressed = Self::async_read_file_to_vecu8(p).await;
+                    let mut jsn = String::new();
+                    let mut decoder = ZlibDecoder::new(&*compressed);
+                    decoder.read_to_string(&mut jsn).unwrap();
+                    Ok(Self::json_to_doc(jsn)?)
+                } else if e == OsStr::new("docx") {
+                    let mut f = fs::File::open(p).await?;
+                    let mut uwu = Vec::new();
+                    f.read_to_end(&mut uwu).await?;
+                    Self::docx_to_doc(Cursor::new(uwu))
+                } else {
+                    Err("Unsupported file type!".into())
+                }
+            }
+        }
+    }
+
+    fn docx_to_doc<R: Read + std::io::Seek>(r: R) -> Result<Document> {
+        let docx_str = docx_handlers::parse_docx_to_string(r)?;
 
         Self::txt_to_doc(docx_str)
     }
@@ -206,11 +260,31 @@ impl Document {
         s
     }
 
+    // Async Generate text of the whole document.
+    #[cfg(feature = "async-io")]
+    async fn async_read_file_to_string(p: &Path) -> String {
+        let mut s = String::new();
+        let mut f = fs::File::open(p).await.unwrap();
+        f.read_to_string(&mut s).await.unwrap();
+
+        s
+    }
+
     // Open a file and return it's byte content.
     fn read_file_to_vecu8(p: &Path) -> Vec<u8> {
         let mut buff: Vec<u8> = Vec::new();
         let mut f = File::open(p).unwrap();
         f.read_to_end(&mut buff).unwrap();
+
+        buff
+    }
+
+    // Open a file and return it's byte content.
+    #[cfg(feature = "async-io")]
+    async fn async_read_file_to_vecu8(p: &Path) -> Vec<u8> {
+        let mut buff: Vec<u8> = Vec::new();
+        let mut f = fs::File::open(p).await.unwrap();
+        f.read_to_end(&mut buff).await.unwrap();
 
         buff
     }
@@ -312,6 +386,37 @@ impl Document {
         Ok(())
     }
 
+    // Async save as a raw JSON file
+    #[cfg(feature = "async-io")]
+    async fn async_save_raw(&self, fp: impl Into<std::path::PathBuf>) -> std::io::Result<()> {
+        let mut f = fs::File::create(fp.into()).await?;
+        f.write_all(self.to_json().as_bytes()).await?;
+        Ok(())
+    }
+
+    // Async save as a compressed JSON file
+    #[cfg(feature = "async-io")]
+    async fn async_save_zlib(&self, fp: impl Into<std::path::PathBuf>) -> std::io::Result<()> {
+        let mut f = fs::File::create(fp.into()).await?;
+        let mut enc = ZlibEncoder::new(Vec::new(), Compression::best());
+        enc.write_all(self.to_json().as_bytes())?;
+        let encoded = enc.finish()?;
+        f.write_all(&encoded).await?;
+        Ok(())
+    }
+
+    // Async save as a .docx file
+    #[cfg(feature = "async-io")]
+    async fn async_save_docx(&self, fp: impl Into<std::path::PathBuf>) -> std::io::Result<()> {
+        let mut f = fs::File::create(fp.into()).await?;
+        let mut v: Cursor<Vec<u8>> = Cursor::new(Vec::new());
+        docx_handlers::string_to_docx(&self.to_string())
+            .build()
+            .pack(&mut v)?;
+        f.write_all(&v.into_inner()).await?;
+        Ok(())
+    }
+
     /// Save your document as raw JSON, compressed JSON or .txt file.
     ///
     /// # Examples
@@ -356,6 +461,56 @@ impl Document {
             }
             OUT::ZLIB => self.save_zlib(pb.clone())?,
             OUT::DOCX => self.save_docx(pb.clone())?,
+        }
+        Ok(pb.display().to_string())
+    }
+
+    /// Async implementation of `save` function.
+    /// Save your document as raw JSON, compressed JSON or .txt file.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rsff::Document;
+    /// use rsff::consts::OUT;
+    ///
+    /// let d = Document::default();
+    ///
+    /// // Save as raw JSON:
+    /// d.save(OUT::RAW, "raw_JSON").await;
+    ///
+    /// // Save as ZLIB compressed JSON:
+    /// d.save(OUT::ZLIB, "compressed_JSON").await;
+    ///
+    /// // Save as raw text:
+    /// d.save(OUT::TXT, "raw_text").await;
+    /// ```
+    #[cfg(feature = "async-io")]
+    pub async fn save_async(&self, fp: impl Into<std::path::PathBuf>) -> std::io::Result<String> {
+        let mut pb: std::path::PathBuf = fp.into();
+        let out_type = {
+            if let Some(ext) = pb.extension() {
+                match ext.to_str().unwrap() {
+                    "txt" => OUT::TXT,
+                    "docx" => OUT::DOCX,
+                    "sffx" => OUT::RAW,
+                    "sffz" => OUT::ZLIB,
+                    _ => return Err(std::io::Error::other("Unsupported Extension!")),
+                }
+            } else {
+                pb.set_extension("sffz");
+                OUT::ZLIB
+            }
+        };
+
+        match out_type {
+            OUT::RAW => self.async_save_raw(pb.clone()).await?,
+            OUT::TXT => {
+                let mut f = File::create(pb.clone())?;
+                f.write_all(self.to_string().as_bytes())?;
+            }
+            OUT::ZLIB => self.async_save_zlib(pb.clone()).await?,
+            OUT::DOCX => self.async_save_docx(pb.clone()).await?,
         }
         Ok(pb.display().to_string())
     }

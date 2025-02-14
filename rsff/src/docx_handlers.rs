@@ -3,10 +3,11 @@ use docx_rust::{
     document::{BodyContent, ParagraphContent, RunContent},
     DocxFile as DocxReader,
 };
-use std::path::Path;
 
-pub fn parse_docx_to_string(p: &Path) -> Result<String, Box<dyn std::error::Error>> {
-    let docx = DocxReader::from_file(p)?;
+pub fn parse_docx_to_string<R: std::io::Read + std::io::Seek>(
+    r: R,
+) -> Result<String, Box<dyn std::error::Error>> {
+    let docx = DocxReader::from_reader(r)?;
     let docx = docx.parse()?;
     let mut doc_strings: Vec<String> = Vec::with_capacity(200);
     for element in docx.document.body.content {
