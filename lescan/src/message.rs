@@ -10,10 +10,6 @@ pub enum Message {
 
     TabPressed,
     EnterPressed,
-    SyncHeader(scrollable::AbsoluteOffset),
-
-    TableColumnResizing(usize, f32),
-    TableColumnResized,
 
     PaneGridDragged(pane_grid::DragEvent),
     PaneGridResized(pane_grid::ResizeEvent),
@@ -27,6 +23,7 @@ pub enum Message {
     CurrentBlnImgPaste,
 
     FileOperation(FileOperation),
+    BalloonSelected(usize),
 }
 
 #[derive(Debug, Clone)]

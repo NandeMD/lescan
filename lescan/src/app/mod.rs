@@ -14,7 +14,6 @@ use crate::utils::bln::bln_content_creator;
 use crate::utils::handlers::*;
 use crate::utils::{panes::MainPanes, tabs::ImageTabs};
 
-use widgets::balloons_table::*;
 use widgets::footer::footer;
 use widgets::main_content::{main_content_pane_grid, Pane};
 
@@ -34,12 +33,6 @@ pub struct TestApp {
     pub current_balloon: usize,
 
     pub theme: Theme,
-
-    pub columns: Vec<BCol>,
-    pub current_scroll: scrollable::AbsoluteOffset,
-    pub table_header_scroller: scrollable::Id,
-    pub table_body_scroller: scrollable::Id,
-    pub table_footer_scroller: scrollable::Id,
 
     pub current_img_tab: ImageTabs,
     pub img_scroller: scrollable::Id,
@@ -86,23 +79,9 @@ impl TestApp {
                 t2_content,
                 t3_content,
 
-                current_scroll: scrollable::AbsoluteOffset::default(),
                 current_balloon,
 
                 theme: Theme::TokyoNight,
-
-                columns: vec![
-                    BCol::new(ColumnKind::Index),
-                    BCol::new(ColumnKind::BlType),
-                    BCol::new(ColumnKind::BlImage),
-                    BCol::new(ColumnKind::TlContent),
-                    BCol::new(ColumnKind::PrContent),
-                    BCol::new(ColumnKind::Comments),
-                ],
-
-                table_header_scroller: scrollable::Id::unique(),
-                table_body_scroller: scrollable::Id::unique(),
-                table_footer_scroller: scrollable::Id::unique(),
 
                 current_img_tab: ImageTabs::Document,
                 img_scroller: scrollable::Id::unique(),

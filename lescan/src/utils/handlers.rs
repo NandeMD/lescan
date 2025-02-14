@@ -61,19 +61,6 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
         Message::T3ContentChanged(action) => {
             app.t3_content.perform(action);
         }
-        Message::SyncHeader(offset) => {
-            app.current_scroll = offset;
-        }
-        Message::TableColumnResizing(index, offset) => {
-            if let Some(col) = app.columns.get_mut(index) {
-                col.resize_offset = Some(offset);
-            }
-        }
-        Message::TableColumnResized => app.columns.iter_mut().for_each(|col| {
-            if let Some(offset) = col.resize_offset.take() {
-                col.width += offset;
-            }
-        }),
         Message::TabPressed => return iced::widget::focus_next(),
         Message::EnterPressed => handle_enter_key_press(app),
         Message::PaneGridResized(widget::pane_grid::ResizeEvent { split, ratio }) => {
@@ -299,6 +286,36 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
                 )
             }
         },
+        Message::BalloonSelected(i) => {
+            app.current_balloon = i;
+            app.t1_content = text_editor::Content::with_text(
+                app.translation_document.balloons[i]
+                    .tl_content
+                    .join("\n//\n")
+                    .as_str(),
+            );
+            app.t2_content = text_editor::Content::with_text(
+                app.translation_document.balloons[i]
+                    .pr_content
+                    .join("\n//\n")
+                    .as_str(),
+            );
+            app.t3_content = text_editor::Content::with_text(
+                app.translation_document.balloons[i]
+                    .comments
+                    .join("\n//\n")
+                    .as_str(),
+            );
+            app.selected_bln_type = Some({
+                match app.translation_document.balloons[i].btype {
+                    TYPES::DIALOGUE => BlnTypes::Dialogue,
+                    TYPES::OT => BlnTypes::OT,
+                    TYPES::SQUARE => BlnTypes::Square,
+                    TYPES::ST => BlnTypes::ST,
+                    TYPES::THINKING => BlnTypes::Thinking,
+                }
+            });
+        }
     }
     Task::none()
 }

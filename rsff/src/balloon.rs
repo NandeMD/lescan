@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 /// let mut b: Balloon = Balloon::default();
 /// b.tl_content.push("This is a tl line.".to_string());
 /// ```
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize, Hash, PartialEq, Eq)]
 pub struct Balloon {
     pub tl_content: Vec<String>,
     pub pr_content: Vec<String>,
@@ -116,26 +116,10 @@ impl std::fmt::Display for Balloon {
 
         // If balloon has pr content, generate balloon text from pr content
         // else, generate balloon text from tl content
-        if !self.pr_content.is_empty() {
-            write!(
-                f,
-                "{}",
-                self.pr_content
-                    .iter()
-                    .map(|pr| format!("{}{}", type_str, pr))
-                    .collect::<Vec<String>>()
-                    .join("\n//\n")
-            )
+        if self.pr_chars() != 0 {
+            write!(f, "{}{}", type_str, self.pr_content.join(" || "))
         } else {
-            write!(
-                f,
-                "{}",
-                self.tl_content
-                    .iter()
-                    .map(|tl| format!("{}{}", type_str, tl))
-                    .collect::<Vec<String>>()
-                    .join("\n//\n")
-            )
+            write!(f, "{}{}", type_str, self.tl_content.join(" || "))
         }
     }
 }

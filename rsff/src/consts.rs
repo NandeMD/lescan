@@ -17,7 +17,7 @@ pub enum OUT {
 ///
 /// ST: Sub-text\
 /// OT: Over-text
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Hash, Eq)]
 pub enum TYPES {
     DIALOGUE,
     SQUARE,

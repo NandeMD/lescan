@@ -2,11 +2,9 @@ use super::document_img_viewer::generate_image_viewer;
 use crate::message::Message;
 use crate::utils::handlers::editor_kp_bindings;
 use crate::utils::{panes::MainPanes, tabs::ImageTabs};
-use iced::widget::{
-    column, container, mouse_area, pane_grid, pick_list, responsive, text, text_editor,
-};
-use iced::{Fill, Length};
-use iced_table::table;
+use iced::widget::{column, container, pane_grid, pick_list, text, text_editor};
+use iced::{Fill, Length, Theme};
+use iced_aw::SelectionList;
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub enum BlnTypes {
@@ -141,21 +139,16 @@ pub fn main_content_pane_grid(app: &crate::app::TestApp) -> pane_grid::PaneGrid<
                     .center(Length::Fill)
             }
             MainPanes::Table => {
-                let table = responsive(|size| {
-                    let t = table(
-                        app.table_header_scroller.clone(),
-                        app.table_body_scroller.clone(),
-                        &app.columns,
-                        &app.translation_document.balloons,
-                        Message::SyncHeader,
-                    )
-                    .on_column_resize(Message::TableColumnResizing, Message::TableColumnResized)
-                    .footer(app.table_footer_scroller.clone())
-                    .min_width(size.width);
-
-                    t.into()
-                });
-                container(mouse_area(table))
+                let table = SelectionList::new_with(
+                    &app.translation_document.balloons,
+                    |i, _| Message::BalloonSelected(i),
+                    16.0,
+                    5,
+                    selection_list_style,
+                    Some(app.current_balloon),
+                    iced::Font::MONOSPACE,
+                );
+                container(table)
             }
         })
         .title_bar(title_bar)
@@ -169,4 +162,31 @@ pub fn main_content_pane_grid(app: &crate::app::TestApp) -> pane_grid::PaneGrid<
 #[derive(Debug, Clone, Copy)]
 pub struct Pane {
     pub id: MainPanes,
+}
+
+fn selection_list_style(
+    theme: &Theme,
+    status: iced_aw::style::Status,
+) -> iced_aw::style::selection_list::Style {
+    let ep = theme.extended_palette();
+    match status {
+        iced_aw::style::Status::Hovered => iced_aw::style::selection_list::Style {
+            text_color: ep.background.weak.text,
+            background: ep.background.weak.color.into(),
+            border_width: 1.0,
+            border_color: ep.primary.strong.color,
+        },
+        iced_aw::style::Status::Selected => iced_aw::style::selection_list::Style {
+            text_color: ep.background.weak.text,
+            background: ep.primary.weak.color.into(),
+            border_width: 1.0,
+            border_color: ep.primary.strong.color,
+        },
+        _ => iced_aw::style::selection_list::Style {
+            text_color: ep.primary.weak.color,
+            background: iced::Color::TRANSPARENT.into(),
+            border_width: 1.0,
+            border_color: iced::Color::TRANSPARENT,
+        },
+    }
 }
