@@ -1,0 +1,12 @@
+_version: 2
+
+pg:
+  images:
+    en: "Images"
+    tr: "Resimler"
+  editor:
+    en: "Editor"
+    tr: "Editör"
+  balloons:
+    en: "Balloons"
+    tr: "Balonlar"

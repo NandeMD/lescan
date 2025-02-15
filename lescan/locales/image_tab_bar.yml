@@ -1,0 +1,15 @@
+_version: 2
+
+imgtabbar:
+  document:
+    en: "Document"
+    tr: "Belge"
+  balloon:
+    en: "Balloon"
+    tr: "Balon"
+  balloon_no_img:
+    en: "No image for balloon"
+    tr: "Balon için resim yok"
+  document_no_img:
+    en: "No image for document"
+    tr: "Belge için resim yok"

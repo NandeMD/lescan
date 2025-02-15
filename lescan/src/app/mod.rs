@@ -7,6 +7,7 @@ use iced_aw::{
     menu_bar, menu_items,
 };
 use rsff::Document;
+use rust_i18n::t;
 use widgets::top_menu::*;
 
 use crate::message::Message;
@@ -105,7 +106,7 @@ impl TestApp {
 
         #[rustfmt::skip]
         let mb = menu_bar!(
-            (menu_main_button("Files"), menu_tpl_1(menu_items!(
+            (menu_main_button(t!("file_menu.file")), menu_tpl_1(menu_items!(
                 (menu_sub_button_file_new())
                 (menu_sub_button_file_open())
                 (menu_sub_button_file_save())
@@ -116,11 +117,16 @@ impl TestApp {
         let pg = main_content_pane_grid(self);
 
         let footer_text = format!(
-            "Balloons: {} | Total Lines: {} | TL Characters: {} | PR Characters: {} | Comment Characters: {}",
+            "{}: {} | {}: {} | {}: {} | {}: {} | {}: {}",
+            t!("footer.balloons"),
             self.translation_document.balloons.len(),
+            t!("footer.total_lines"),
             self.translation_document.line_count(),
+            t!("footer.tl_chars"),
             self.translation_document.tl_chars(),
+            t!("footer.pr_chars"),
             self.translation_document.pr_chars(),
+            t!("footer.comment_chars"),
             self.translation_document.comment_chars()
         );
         let ftr = footer(footer_text)

@@ -1,0 +1,18 @@
+_version: 2
+
+footer:
+  balloons:
+    en: "Balloons"
+    tr: "Balon Sayısı"
+  total_lines:
+    en: "Total Lines"
+    tr: "Toplam Satır"
+  tl_chars:
+    en: "TL Chars"
+    tr: "Çev. Karakter"
+  pr_chars: 
+    en: "PR Chars"
+    tr: "Rdk. Karakter"
+  comment_chars:
+    en: "Comment Chars"
+    tr: "Yrm. Karakter"

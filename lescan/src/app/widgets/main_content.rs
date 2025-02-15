@@ -5,6 +5,7 @@ use crate::utils::{panes::MainPanes, tabs::ImageTabs};
 use iced::widget::{column, container, pane_grid, pick_list, text, text_editor};
 use iced::{Fill, Length, Theme};
 use iced_aw::SelectionList;
+use rust_i18n::t;
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub enum BlnTypes {
@@ -27,23 +28,27 @@ impl BlnTypes {
 
 impl std::fmt::Display for BlnTypes {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            BlnTypes::Dialogue => write!(f, "Dialogue"),
-            BlnTypes::Square => write!(f, "Square"),
-            BlnTypes::Thinking => write!(f, "Thinking"),
-            BlnTypes::ST => write!(f, "ST"),
-            BlnTypes::OT => write!(f, "OT"),
-        }
+        let text = match self {
+            BlnTypes::Dialogue => t!("btype.dialogue"),
+            BlnTypes::Square => t!("btype.square"),
+            BlnTypes::Thinking => t!("btype.thinking"),
+            BlnTypes::ST => t!("btype.st"),
+            BlnTypes::OT => t!("btype.ot"),
+        };
+        write!(f, "{}", text)
     }
 }
 
 pub fn main_content_pane_grid(app: &crate::app::TestApp) -> pane_grid::PaneGrid<Message> {
     pane_grid::PaneGrid::new(&app.panes, move |_id, pane, _is_max| {
         let title_bar = pane_grid::TitleBar::new(
-            container(match pane.id {
-                MainPanes::Image => text!("Images"),
-                MainPanes::Editor => text!("Editor"),
-                MainPanes::Table => text!("Balloons"),
+            container({
+                let title = match pane.id {
+                    MainPanes::Image => t!("pg.images"),
+                    MainPanes::Editor => t!("pg.editor"),
+                    MainPanes::Table => t!("pg.balloons"),
+                };
+                text!("{}", title)
             })
             .padding(10)
             .style(|_| {
@@ -71,11 +76,11 @@ pub fn main_content_pane_grid(app: &crate::app::TestApp) -> pane_grid::PaneGrid<
                 let tab_br = iced_aw::TabBar::new(Message::ImageTabSelected)
                     .push(
                         ImageTabs::Document,
-                        iced_aw::TabLabel::IconText('\u{1F5CE}', "Document".into()),
+                        iced_aw::TabLabel::IconText('\u{1F5CE}', t!("imgtabbar.document").into()),
                     )
                     .push(
                         ImageTabs::Balloon,
-                        iced_aw::TabLabel::IconText('\u{1F5BC}', "Image".into()),
+                        iced_aw::TabLabel::IconText('\u{1F5BC}', t!("imgtabbar.balloon").into()),
                     )
                     .set_active_tab(&app.current_img_tab);
 
@@ -94,7 +99,7 @@ pub fn main_content_pane_grid(app: &crate::app::TestApp) -> pane_grid::PaneGrid<
                                 .height(Length::Fill),
                         )
                     } else {
-                        container(text!("No image for this balloon"))
+                        container(text!("{}", t!("imgtabbar.balloon_no_img")))
                     }
                     .center(Length::Fill),
                 };
@@ -116,21 +121,21 @@ pub fn main_content_pane_grid(app: &crate::app::TestApp) -> pane_grid::PaneGrid<
                 .width(Length::Fill)
                 .padding(5);
                 let editor_1 = text_editor(&app.t1_content)
-                    .placeholder("Default text...")
+                    .placeholder(t!("text_editors.translation_editor_placeholder"))
                     .on_action(Message::T1ContentChanged)
                     .height(100)
                     .padding(10)
                     .key_binding(editor_kp_bindings);
 
                 let editor_2 = text_editor(&app.t2_content)
-                    .placeholder("Default text...")
+                    .placeholder(t!("text_editors.proofread_editor_placeholder"))
                     .on_action(Message::T2ContentChanged)
                     .height(100)
                     .padding(10)
                     .key_binding(editor_kp_bindings);
 
                 let editor_3 = text_editor(&app.t3_content)
-                    .placeholder("Default text...")
+                    .placeholder(t!("text_editors.comment_editor_placeholder"))
                     .on_action(Message::T3ContentChanged)
                     .height(100)
                     .padding(10)

@@ -1,0 +1,18 @@
+_version: 2
+
+file_menu:
+  file:
+    en: "File"
+    tr: "Dosya"
+  new:
+    en: "New"
+    tr: "Yeni"
+  open:
+    en: "Open"
+    tr: "Aç"
+  save:
+    en: "Save"
+    tr: "Kaydet"
+  save_as:
+    en: "Save As"
+    tr: "Farklı Kaydet"

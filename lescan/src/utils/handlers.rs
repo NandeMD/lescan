@@ -12,6 +12,8 @@ use rsff::TYPES;
 
 use super::tabs::ImageTabs;
 
+use rust_i18n::t;
+
 const SUPPORTED_IMG_EXTENSIONS: [&str; 12] = [
     "jpg", "jpeg", "png", "gif", "bmp", "tiff", "webp", "avif", "dds", "ff", "hdr", "ico",
 ];
@@ -185,14 +187,12 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
             FileOperation::NewFileDialog => {
                 return Task::future(async {
                     let dywt = rfd::AsyncMessageDialog::new()
-                    .set_title("New File")
-                    .set_description(
-                        "Do you want to create a new document? All unsaved progress will be lost.",
-                    )
-                    .set_level(rfd::MessageLevel::Warning)
-                    .set_buttons(rfd::MessageButtons::YesNo)
-                    .show()
-                    .await;
+                        .set_title(t!("dialog_windows.new_document.title"))
+                        .set_description(t!("dialog_windows.new_document.description"))
+                        .set_level(rfd::MessageLevel::Warning)
+                        .set_buttons(rfd::MessageButtons::YesNo)
+                        .show()
+                        .await;
                     if dywt == rfd::MessageDialogResult::Yes {
                         Some(())
                     } else {
@@ -216,7 +216,7 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
                 return Task::future(async {
                     rfd::AsyncFileDialog::new()
                         .add_filter("RSFF", &["txt", "sffx", "sffz"])
-                        .set_title("Open a scanlation file.")
+                        .set_title(t!("dialog_windows.open_document.title"))
                         .pick_file()
                         .await
                 })
@@ -237,7 +237,7 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
                                     save_location.display(),
                                     save_error
                                 ))
-                                .set_title("Error While Saving")
+                                .set_title(t!("dialog_windows.errors.error_while_saving.title"))
                                 .show()
                                 .await;
                         })
@@ -256,7 +256,7 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
                         } else {
                             rfd::AsyncFileDialog::new()
                                 .add_filter("RSFF", &["sffz"])
-                                .set_title("Save a scanlation file.")
+                                .set_title(t!("dialog_windows.save_document.title"))
                                 .set_can_create_directories(true)
                                 .set_file_name("scan.sffz")
                                 .save_file()
@@ -271,13 +271,22 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
                 return Task::perform(
                     async {
                         rfd::AsyncFileDialog::new()
-                            .add_filter("Compressed Scanlation File (default)", &["sffz"])
-                            .add_filter("Scanlation File", &["sffx"])
-                            .add_filter("Text File", &["txt"])
-                            .add_filter("Word Document", &["docx"])
-                            .set_title("Save a scanlation file.")
+                            .add_filter(
+                                t!("dialog_windows.save_as_document.filter_sffz"),
+                                &["sffz"],
+                            )
+                            .add_filter(
+                                t!("dialog_windows.save_as_document.filter_sffx"),
+                                &["sffx"],
+                            )
+                            .add_filter(t!("dialog_windows.save_as_document.filter_txt"), &["txt"])
+                            .add_filter(
+                                t!("dialog_windows.save_as_document.filter_docx"),
+                                &["docx"],
+                            )
+                            .set_title(t!("dialog_windows.save_as_document.title"))
                             .set_can_create_directories(true)
-                            .set_file_name("scan.sffz")
+                            .set_file_name("scan")
                             .save_file()
                             .await
                             .map(|t| t.into())

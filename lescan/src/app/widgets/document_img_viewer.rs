@@ -3,6 +3,8 @@ use iced::{Element, Length, Renderer, Theme};
 
 use crate::{message::Message, TestApp};
 
+use rust_i18n::t;
+
 // Ask discord about Message::ImageScrolled firing
 // after creation so when panes change, scroll state
 // returns to RelativeOffset::START
@@ -22,6 +24,6 @@ pub fn generate_image_viewer(app: &TestApp) -> Element<'_, Message, Theme, Rende
 
         img_scroller.into()
     } else {
-        text!("No image for this document!").into()
+        text!("{}", t!("imgtabbar.document_no_img")).into()
     }
 }
