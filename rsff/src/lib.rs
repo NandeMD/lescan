@@ -96,33 +96,50 @@ impl Document {
     ///
     /// let mut d: Document = Document::open("test.sffx").unwrap();
     /// ```
-    pub fn open<P: ?Sized + AsRef<Path>>(file_path: &P) -> Result<Document> {
+    pub fn open<P: ?Sized + AsRef<Path>>(file_path: &P) -> std::io::Result<Document> {
         let p = file_path.as_ref();
 
         if !p.exists() {
-            return Err("File does not exists!".into());
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::NotFound,
+                "File does not exists!",
+            ));
         }
 
         match p.extension() {
-            None => Err("No file ext!".into()),
+            None => Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidInput,
+                "No file ext!",
+            )),
             Some(e) => {
                 if e == OsStr::new("txt") {
-                    let text = Self::read_file_to_string(p);
-                    Ok(Self::txt_to_doc(text)?)
+                    let text = Self::read_file_to_string(p)?;
+                    Ok(Self::txt_to_doc(text).map_err(|e| {
+                        std::io::Error::new(std::io::ErrorKind::InvalidData, e.to_string())
+                    })?)
                 } else if e == OsStr::new("sffx") {
-                    let jsn = Self::read_file_to_string(p);
-                    Ok(Self::json_to_doc(jsn)?)
+                    let jsn = Self::read_file_to_string(p)?;
+                    Ok(Self::json_to_doc(jsn).map_err(|e| {
+                        std::io::Error::new(std::io::ErrorKind::InvalidData, e.to_string())
+                    })?)
                 } else if e == OsStr::new("sffz") {
-                    let compressed = Self::read_file_to_vecu8(p);
+                    let compressed = Self::read_file_to_vecu8(p)?;
                     let mut jsn = String::new();
                     let mut decoder = ZlibDecoder::new(&*compressed);
-                    decoder.read_to_string(&mut jsn).unwrap();
-                    Ok(Self::json_to_doc(jsn)?)
+                    decoder.read_to_string(&mut jsn)?;
+                    Ok(Self::json_to_doc(jsn).map_err(|e| {
+                        std::io::Error::new(std::io::ErrorKind::InvalidData, e.to_string())
+                    })?)
                 } else if e == OsStr::new("docx") {
                     let f = File::open(p)?;
-                    Self::docx_to_doc(f)
+                    Self::docx_to_doc(f).map_err(|e| {
+                        std::io::Error::new(std::io::ErrorKind::InvalidData, e.to_string())
+                    })
                 } else {
-                    Err("Unsupported file type!".into())
+                    Err(std::io::Error::new(
+                        std::io::ErrorKind::InvalidInput,
+                        "Unsupported file type!",
+                    ))
                 }
             }
         }
@@ -141,35 +158,52 @@ impl Document {
     /// let mut d: Document = Document::open("test.sffx").await.unwrap();
     /// ```
     #[cfg(feature = "async-io")]
-    pub async fn open_async<P: ?Sized + AsRef<Path>>(file_path: &P) -> Result<Document> {
+    pub async fn open_async<P: ?Sized + AsRef<Path>>(file_path: &P) -> tokio::io::Result<Document> {
         let p = file_path.as_ref();
 
         if !p.exists() {
-            return Err("File does not exists!".into());
+            return Err(tokio::io::Error::new(
+                tokio::io::ErrorKind::NotFound,
+                "File does not exists!",
+            ));
         }
 
         match p.extension() {
-            None => Err("No file ext!".into()),
+            None => Err(tokio::io::Error::new(
+                tokio::io::ErrorKind::InvalidInput,
+                "No file ext!",
+            )),
             Some(e) => {
                 if e == OsStr::new("txt") {
-                    let text = Self::async_read_file_to_string(p).await;
-                    Ok(Self::txt_to_doc(text)?)
+                    let text = Self::async_read_file_to_string(p).await?;
+                    Ok(Self::txt_to_doc(text).map_err(|e| {
+                        tokio::io::Error::new(tokio::io::ErrorKind::InvalidData, e.to_string())
+                    })?)
                 } else if e == OsStr::new("sffx") {
-                    let jsn = Self::async_read_file_to_string(p).await;
-                    Ok(Self::json_to_doc(jsn)?)
+                    let jsn = Self::async_read_file_to_string(p).await?;
+                    Ok(Self::json_to_doc(jsn).map_err(|e| {
+                        tokio::io::Error::new(tokio::io::ErrorKind::InvalidData, e.to_string())
+                    })?)
                 } else if e == OsStr::new("sffz") {
-                    let compressed = Self::async_read_file_to_vecu8(p).await;
+                    let compressed = Self::async_read_file_to_vecu8(p).await?;
                     let mut jsn = String::new();
                     let mut decoder = ZlibDecoder::new(&*compressed);
-                    decoder.read_to_string(&mut jsn).unwrap();
-                    Ok(Self::json_to_doc(jsn)?)
+                    decoder.read_to_string(&mut jsn)?;
+                    Ok(Self::json_to_doc(jsn).map_err(|e| {
+                        tokio::io::Error::new(tokio::io::ErrorKind::InvalidData, e.to_string())
+                    })?)
                 } else if e == OsStr::new("docx") {
                     let mut f = fs::File::open(p).await?;
                     let mut uwu = Vec::new();
                     f.read_to_end(&mut uwu).await?;
-                    Self::docx_to_doc(Cursor::new(uwu))
+                    Self::docx_to_doc(Cursor::new(uwu)).map_err(|e| {
+                        tokio::io::Error::new(tokio::io::ErrorKind::InvalidData, e.to_string())
+                    })
                 } else {
-                    Err("Unsupported file type!".into())
+                    Err(tokio::io::Error::new(
+                        tokio::io::ErrorKind::InvalidInput,
+                        "Unsupported file type!",
+                    ))
                 }
             }
         }
@@ -252,41 +286,41 @@ impl Document {
     }
 
     // Generate text of the whole document.
-    fn read_file_to_string(p: &Path) -> String {
+    fn read_file_to_string(p: &Path) -> std::io::Result<String> {
         let mut s = String::new();
-        let mut f = File::open(p).unwrap();
-        f.read_to_string(&mut s).unwrap();
+        let mut f = File::open(p)?;
+        f.read_to_string(&mut s)?;
 
-        s
+        Ok(s)
     }
 
     // Async Generate text of the whole document.
     #[cfg(feature = "async-io")]
-    async fn async_read_file_to_string(p: &Path) -> String {
+    async fn async_read_file_to_string(p: &Path) -> tokio::io::Result<String> {
         let mut s = String::new();
-        let mut f = fs::File::open(p).await.unwrap();
-        f.read_to_string(&mut s).await.unwrap();
+        let mut f = fs::File::open(p).await?;
+        f.read_to_string(&mut s).await?;
 
-        s
+        Ok(s)
     }
 
     // Open a file and return it's byte content.
-    fn read_file_to_vecu8(p: &Path) -> Vec<u8> {
+    fn read_file_to_vecu8(p: &Path) -> std::io::Result<Vec<u8>> {
         let mut buff: Vec<u8> = Vec::new();
-        let mut f = File::open(p).unwrap();
-        f.read_to_end(&mut buff).unwrap();
+        let mut f = File::open(p)?;
+        f.read_to_end(&mut buff)?;
 
-        buff
+        Ok(buff)
     }
 
     // Open a file and return it's byte content.
     #[cfg(feature = "async-io")]
-    async fn async_read_file_to_vecu8(p: &Path) -> Vec<u8> {
+    async fn async_read_file_to_vecu8(p: &Path) -> tokio::io::Result<Vec<u8>> {
         let mut buff: Vec<u8> = Vec::new();
-        let mut f = fs::File::open(p).await.unwrap();
-        f.read_to_end(&mut buff).await.unwrap();
+        let mut f = fs::File::open(p).await?;
+        f.read_to_end(&mut buff).await?;
 
-        buff
+        Ok(buff)
     }
 
     /// Total character count of all translation content.
