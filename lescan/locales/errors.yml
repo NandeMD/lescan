@@ -1,0 +1,24 @@
+_version: 2
+
+errors:
+  extension_error:
+    title:
+      en: "Extension Error"
+      tr: "Uzantı Hatası"
+    description:
+      en: "An error occured while reading the extension of the file: %{p}"
+      tr: "Dosyanın uzantısı okunurken bir hata oluştu: %{p}"
+  open_file_error:
+    title:
+      en: "Error while opening file"
+      tr: "Dosya açılırken hata oluştu"
+    description:
+      en: "An error occured while opening the file: %{p}\n%{e}"
+      tr: "Dosya açılırken bir hata oluştu: %{p}\n%{e}"
+  read_img_file_error:
+    title:
+      en: "Error while reading image file"
+      tr: "Resim dosyası okunurken hata oluştu"
+    description:
+      en: "An error occured while reading the image file: %{p}\n%{e}"
+      tr: "Resim dosyası okunurken bir hata oluştu: %{p}\n%{e}"

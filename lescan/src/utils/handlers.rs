@@ -1,6 +1,7 @@
 use crate::app::widgets::main_content::BlnTypes;
 use crate::app::TestApp;
 use crate::message::*;
+use crate::utils::dialog_windows;
 use iced::keyboard::key::{Key, Named};
 use iced::widget::{
     self,
@@ -86,16 +87,76 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
         }
         Message::FileDropped(path) => {
             if path.is_file() {
-                let ext = path.extension().unwrap().to_str().unwrap().to_lowercase();
+                let ext = {
+                    if let Some(extension) = path.extension() {
+                        if let Some(ext) = extension.to_str() {
+                            ext.to_string()
+                        } else {
+                            return Task::future(async move {
+                                dialog_windows::show_error_dialog(
+                                    t!("errors.extension_error.title"),
+                                    t!("errors.extension_error.description", name = path.display()),
+                                )
+                                .await
+                            })
+                            .then(|_| Task::none());
+                        }
+                    } else {
+                        return Task::future(async move {
+                            dialog_windows::show_error_dialog(
+                                t!("errors.extension_error.title"),
+                                t!("errors.extension_error.description", name = path.display()),
+                            )
+                            .await
+                        })
+                        .then(|_| Task::none());
+                    }
+                };
 
                 if ["sffx", "sffz", "txt"].contains(&ext.as_str()) {
                     app.current_balloon = 0;
-                    app.translation_document = rsff::Document::open(&path).unwrap();
+                    app.translation_document = {
+                        match rsff::Document::open(&path) {
+                            Ok(doc) => doc,
+                            Err(e) => {
+                                let e = e.to_string();
+                                return Task::future(async move {
+                                    dialog_windows::show_error_dialog(
+                                        t!("errors.open_file_error.title"),
+                                        t!(
+                                            "errors.open_file_error.description",
+                                            p = path.display(),
+                                            e = e
+                                        ),
+                                    )
+                                    .await
+                                })
+                                .then(|_| Task::none());
+                            }
+                        }
+                    };
                     app.document_file_location = Some(path.display().to_string());
                 } else if SUPPORTED_IMG_EXTENSIONS.contains(&ext.as_str()) {
                     let current_bln = app.current_balloon;
-                    let new_img_data = std::fs::read(path).unwrap();
-                    app.translation_document.balloons[current_bln].add_image(ext, new_img_data);
+                    match std::fs::read(&path) {
+                        Ok(new_img_data) => app.translation_document.balloons[current_bln]
+                            .add_image(ext, new_img_data),
+                        Err(e) => {
+                            let e = e.to_string();
+                            return Task::future(async move {
+                                dialog_windows::show_error_dialog(
+                                    t!("errors.read_img_file_error.title"),
+                                    t!(
+                                        "errors.read_img_file_error.description",
+                                        p = path.display(),
+                                        e = e
+                                    ),
+                                )
+                                .await
+                            })
+                            .then(|_| Task::none());
+                        }
+                    }
                 }
             } else if path.is_dir() {
                 let mut images_in_path = std::fs::read_dir(path)
@@ -103,6 +164,7 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
                     .filter(|e| {
                         e.is_ok()
                             && e.as_ref().unwrap().path().is_file()
+                            && e.as_ref().unwrap().path().extension().is_some()
                             && SUPPORTED_IMG_EXTENSIONS.contains(
                                 &e.as_ref()
                                     .unwrap()
