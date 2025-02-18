@@ -22,3 +22,15 @@ errors:
     description:
       en: "An error occured while reading the image file: %{p}\n%{e}"
       tr: "Resim dosyası okunurken bir hata oluştu: %{p}\n%{e}"
+  could_not_open_config:
+    en: "Could not open config file:"
+    tr: "Yapılandırma dosyası açılamadı:"
+  could_not_parse_config:
+    en: "Could not parse config file:"
+    tr: "Yapılandırma dosyası ayrıştırılamadı:"
+  could_not_serialize_config:
+    en: "Could not serialize config file:"
+    tr: "Yapılandırma dosyası oluşturulamadı:"
+  could_not_write_config:
+    en: "Could not write config file:"
+    tr: "Yapılandırma dosyası kaydedilemedi:"
