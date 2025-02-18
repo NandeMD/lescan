@@ -5,6 +5,7 @@ use rust_i18n::i18n;
 mod app;
 use app::TestApp;
 mod message;
+mod settings;
 mod utils;
 
 i18n!("locales", fallback = "en");
