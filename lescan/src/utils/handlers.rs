@@ -387,6 +387,12 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
                 }
             });
         }
+        Message::ShowModal(modal_type) => {
+            app.show_modal = Some(modal_type);
+        }
+        Message::HideModal(modal_type) => {
+            app.show_modal = None;
+        }
     }
     Task::none()
 }

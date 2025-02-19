@@ -1,5 +1,6 @@
 use crate::app::widgets::main_content::BlnTypes;
 use iced::widget::{pane_grid, scrollable, text_editor};
+use crate::app::modals::ModalType;
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -24,6 +25,9 @@ pub enum Message {
 
     FileOperation(FileOperation),
     BalloonSelected(usize),
+
+    ShowModal(ModalType),
+    HideModal(ModalType),
 }
 
 #[derive(Debug, Clone)]

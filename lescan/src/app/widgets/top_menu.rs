@@ -27,6 +27,13 @@ fn menu_sub_button<'a>(
     labeled_button(label, msg).width(Length::Fill)
 }
 
+pub fn menu_sub_button_app_settings<'a>() -> button::Button<'a, Message, iced::Theme, iced::Renderer> {
+    menu_sub_button(
+        t!("app_menu.settings"),
+        Message::ShowModal(crate::app::modals::ModalType::Settings),
+    )
+}
+
 pub fn menu_sub_button_file_new<'a>() -> button::Button<'a, Message, iced::Theme, iced::Renderer> {
     menu_sub_button(
         t!("file_menu.new"),

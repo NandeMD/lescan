@@ -16,3 +16,10 @@ file_menu:
   save_as:
     en: "Save As"
     tr: "Farklı Kaydet"
+app_menu:
+  app:
+    en: "App"
+    tr: "Uygulama"
+  settings:
+    en: "Settings"
+    tr: "Ayarlar"

@@ -1,6 +1,7 @@
 pub mod widgets;
+pub mod modals;
 
-use iced::widget::{self, column, pane_grid, scrollable, text_editor};
+use iced::widget::{self, column, pane_grid, scrollable, text_editor, Column};
 use iced::{Element, Length, Task, Theme};
 use iced_aw::{
     menu::{Item, Menu},
@@ -40,6 +41,8 @@ pub struct TestApp {
     pub img_scroller_current_scroll: scrollable::RelativeOffset,
 
     pub document_file_location: Option<String>,
+
+    pub show_modal: Option<modals::ModalType>,
 }
 
 impl TestApp {
@@ -89,6 +92,7 @@ impl TestApp {
                 img_scroller_current_scroll: scrollable::RelativeOffset::START,
 
                 document_file_location: None,
+                show_modal: None,
             },
             widget::focus_next(),
         )
@@ -112,6 +116,9 @@ impl TestApp {
                 (menu_sub_button_file_save())
                 (menu_sub_button_file_save_as())
             )))
+            (menu_main_button(t!("app_menu.app")), menu_tpl_1(menu_items!(
+                (menu_sub_button_app_settings())
+            )))
         );
 
         let pg = main_content_pane_grid(self);
@@ -133,7 +140,12 @@ impl TestApp {
             .width(Length::Fill)
             .height(Length::Fixed(30.0));
 
-        column![mb, pg, ftr].spacing(10).padding(10).into()
+        if let Some(modal) = &self.show_modal {
+            let base: Column<Message> = column![mb, pg, ftr].spacing(10).padding(10);
+            modals::modal_handler(base, modal.clone(), Message::HideModal(modal.clone()))
+        } else {
+            column![mb, pg, ftr].spacing(10).padding(10).into()
+        }
     }
 
     pub fn subscription(&self) -> iced::Subscription<Message> {
