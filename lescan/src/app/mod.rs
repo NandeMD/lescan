@@ -1,5 +1,5 @@
-pub mod widgets;
 pub mod modals;
+pub mod widgets;
 
 use iced::widget::{self, column, pane_grid, scrollable, text_editor, Column};
 use iced::{Element, Length, Task, Theme};
@@ -43,6 +43,7 @@ pub struct TestApp {
     pub document_file_location: Option<String>,
 
     pub show_modal: Option<modals::ModalType>,
+    pub modal_markdowns: modals::ModalMarkdowns,
 }
 
 impl TestApp {
@@ -93,6 +94,7 @@ impl TestApp {
 
                 document_file_location: None,
                 show_modal: None,
+                modal_markdowns: modals::ModalMarkdowns::default(),
             },
             widget::focus_next(),
         )
@@ -118,6 +120,7 @@ impl TestApp {
             )))
             (menu_main_button(t!("app_menu.app")), menu_tpl_1(menu_items!(
                 (menu_sub_button_app_settings())
+                (menu_sub_button_about())
             )))
         );
 
@@ -142,7 +145,13 @@ impl TestApp {
 
         if let Some(modal) = &self.show_modal {
             let base: Column<Message> = column![mb, pg, ftr].spacing(10).padding(10);
-            modals::modal_handler(base, modal.clone(), Message::HideModal(modal.clone()))
+            modals::modal_handler(
+                base,
+                modal.clone(),
+                Message::HideModal(modal.clone()),
+                Message::LinkClicked,
+                self,
+            )
         } else {
             column![mb, pg, ftr].spacing(10).padding(10).into()
         }

@@ -393,6 +393,7 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
         Message::HideModal(modal_type) => {
             app.show_modal = None;
         }
+        Message::LinkClicked(_) => {}
     }
     Task::none()
 }

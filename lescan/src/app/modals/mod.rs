@@ -1,8 +1,8 @@
-use iced::{Element, Color};
-use iced::widget::{stack, mouse_area, opaque, center, container};
+use iced::widget::{center, container, markdown, mouse_area, opaque, stack};
+use iced::{Color, Element};
 
-pub mod settings;
 pub mod about;
+pub mod settings;
 
 #[derive(Debug, Clone)]
 pub enum ModalType {
@@ -14,13 +14,15 @@ pub fn modal_handler<'a, Message>(
     base: impl Into<Element<'a, Message>>,
     modal_type: ModalType,
     on_blur: Message,
+    on_link_click: impl Fn(markdown::Url) -> Message + 'a,
+    app: &'a crate::TestApp,
 ) -> Element<'a, Message>
 where
     Message: Clone + 'a,
 {
     match modal_type {
         ModalType::Settings => modal(base, settings::settings_modal(), on_blur),
-        ModalType::About => modal(base, about::about_modal(), on_blur),
+        ModalType::About => modal(base, about::about_modal(app, on_link_click), on_blur),
     }
 }
 
@@ -51,4 +53,19 @@ where
         )
     ]
     .into()
+}
+
+pub struct ModalMarkdowns {
+    pub about: Vec<markdown::Item>,
+}
+
+impl Default for ModalMarkdowns {
+    fn default() -> Self {
+        let about_msg: &str =
+            "This is an app made by me, for me, and for you! For the love of Hentai!";
+        let parsed_md = markdown::parse(about_msg);
+        ModalMarkdowns {
+            about: parsed_md.collect(),
+        }
+    }
 }

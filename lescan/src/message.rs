@@ -1,6 +1,6 @@
+use crate::app::modals::ModalType;
 use crate::app::widgets::main_content::BlnTypes;
 use iced::widget::{pane_grid, scrollable, text_editor};
-use crate::app::modals::ModalType;
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -28,6 +28,8 @@ pub enum Message {
 
     ShowModal(ModalType),
     HideModal(ModalType),
+
+    LinkClicked(iced::widget::markdown::Url),
 }
 
 #[derive(Debug, Clone)]

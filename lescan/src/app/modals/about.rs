@@ -1,19 +1,21 @@
 use iced::widget::{column, container, markdown};
 use iced::{Alignment, Element, Theme};
 
-pub fn about_modal<'a, Message>() -> Element<'a, Message>
+pub fn about_modal<'a, Message>(
+    app: &'a crate::TestApp,
+    on_link_click: impl Fn(markdown::Url) -> Message + 'a,
+) -> Element<'a, Message>
 where
     Message: Clone + 'a,
 {
-    let about_msg = "This is an app made by me, for me, and for you! For the love of Hentai!";
     container(
         column![markdown(
-            markdown::parse(about_msg).collect(),
+            &app.modal_markdowns.about,
             markdown::Settings::default(),
             markdown::Style::from_palette(Theme::TokyoNightStorm.palette())
-        )]
+        )
+        .map(on_link_click)]
         .align_x(Alignment::Center),
     )
-    .style(container::rounded_box)
     .into()
 }
