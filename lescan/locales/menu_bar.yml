@@ -23,3 +23,6 @@ app_menu:
   settings:
     en: "Settings"
     tr: "Ayarlar"
+  about:
+    en: "About"
+    tr: "Hakkında"

@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-iced = { version = "0.13", features = ["lazy", "image"] }
+iced = { version = "0.13", features = ["lazy", "image", "markdown"] }
 rsff = { path = "../rsff" }
 iced_aw = "0.11"
 rfd = "0.15.2"

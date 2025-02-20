@@ -2,10 +2,12 @@ use iced::{Element, Color};
 use iced::widget::{stack, mouse_area, opaque, center, container};
 
 pub mod settings;
+pub mod about;
 
 #[derive(Debug, Clone)]
 pub enum ModalType {
-    Settings
+    Settings,
+    About,
 }
 
 pub fn modal_handler<'a, Message>(
@@ -18,6 +20,7 @@ where
 {
     match modal_type {
         ModalType::Settings => modal(base, settings::settings_modal(), on_blur),
+        ModalType::About => modal(base, about::about_modal(), on_blur),
     }
 }
 
