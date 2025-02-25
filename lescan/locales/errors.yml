@@ -32,8 +32,11 @@ errors:
     en: "Could not serialize config file:"
     tr: "Yapılandırma dosyası oluşturulamadı:"
   could_not_write_config:
-    en: "Could not write config file:"
-    tr: "Yapılandırma dosyası kaydedilemedi:"
+    en: "Could not write config file."
+    tr: "Yapılandırma dosyası kaydedilemedi."
+  could_not_create_config_dir:
+    en: "Could not create config directory."
+    tr: "Yapılandırma dizini oluşturulamadı."
   could_not_open_url:
     title:
       en: "Could not open URL"

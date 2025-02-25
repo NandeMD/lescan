@@ -1,5 +1,6 @@
 use iced::widget::{center, container, markdown, mouse_area, opaque, stack};
 use iced::{Color, Element};
+use rust_i18n::t;
 
 pub mod about;
 pub mod settings;
@@ -63,20 +64,8 @@ pub struct ModalMarkdowns {
 
 impl Default for ModalMarkdowns {
     fn default() -> Self {
-        let about_msg: &str = r#"
-This is an app made by [me](https://github.com/NandeMD), for me, and for you! For the love of Hentai!
-
-This app is made with Rust and Iced, and is a work in progress. I'm still learning Rust and Iced, so please be patient with me.
-
-If you have any suggestions, feedback, or bug reports, please let me know!
-
-You can find the source code for this app on [GitHub](https://github.com/NandeMD/lescan).
-
-Thank you for using this app!
-
-- Version: 0.1.0
-        "#;
-        let parsed_md = markdown::parse(about_msg);
+        let about_text = t!("about").into_owned();
+        let parsed_md = markdown::parse(&about_text);
         ModalMarkdowns {
             about: parsed_md.collect(),
         }

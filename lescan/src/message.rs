@@ -30,6 +30,8 @@ pub enum Message {
     HideModal(ModalType),
 
     LinkClicked(iced::widget::markdown::Url),
+
+    ExitApp,
 }
 
 #[derive(Debug, Clone)]

@@ -7,7 +7,7 @@ use iced::widget::{
     self,
     text_editor::{self, Binding, KeyPress, Status},
 };
-use iced::Task;
+use iced::{window, Task};
 use rsff::balloon::Balloon;
 use rsff::TYPES;
 
@@ -406,6 +406,15 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
                 .then(|_| Task::none());
             }
         },
+        Message::ExitApp => {
+            let cache = crate::app_cache::AppCache {
+                last_document: app.document_file_location.clone(),
+                settings_file_path: app.settings.settings_file_path.clone(),
+            };
+            cache.save();
+            println!("Cache saved!");
+            return window::get_latest().and_then(window::close);
+        }
     }
     Task::none()
 }

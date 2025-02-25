@@ -11,7 +11,9 @@ use rsff::Document;
 use rust_i18n::t;
 use widgets::top_menu::*;
 
+use crate::app_cache::AppCache;
 use crate::message::Message;
+use crate::settings::AppSettings;
 use crate::utils::bln::bln_content_creator;
 use crate::utils::handlers::*;
 use crate::utils::{panes::MainPanes, tabs::ImageTabs};
@@ -21,6 +23,7 @@ use widgets::main_content::{main_content_pane_grid, Pane};
 
 pub struct TestApp {
     pub translation_document: Document,
+    pub settings: AppSettings,
 
     pub panes: pane_grid::State<widgets::main_content::Pane>,
 
@@ -74,9 +77,13 @@ impl TestApp {
 
         let panes = pane_grid::State::with_configuration(pane_config);
 
+        let cache = AppCache::default();
+        let settings = AppSettings::new(cache.settings_file_path.clone());
+
         (
             Self {
                 translation_document: tl_doc,
+                settings,
                 panes,
 
                 selected_bln_type: Some(widgets::main_content::BlnTypes::Dialogue),
@@ -199,6 +206,7 @@ impl TestApp {
                 iced::Event::Window(iced::window::Event::FileDropped(pth)) => {
                     Some(Message::FileDropped(pth))
                 }
+                iced::Event::Window(iced::window::Event::CloseRequested) => Some(Message::ExitApp),
                 _ => None,
             }),
         ])
