@@ -390,10 +390,22 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
         Message::ShowModal(modal_type) => {
             app.show_modal = Some(modal_type);
         }
-        Message::HideModal(modal_type) => {
+        Message::HideModal(_) => {
             app.show_modal = None;
         }
-        Message::LinkClicked(_) => {}
+        Message::LinkClicked(url) => match open::that_detached(url.to_string()) {
+            Ok(_) => {}
+            Err(e) => {
+                return Task::future(async move {
+                    dialog_windows::show_error_dialog(
+                        t!("errors.could_not_open_url.title"),
+                        t!("errors.could_not_open_url.description", p = url, e = e),
+                    )
+                    .await
+                })
+                .then(|_| Task::none());
+            }
+        },
     }
     Task::none()
 }

@@ -34,3 +34,10 @@ errors:
   could_not_write_config:
     en: "Could not write config file:"
     tr: "Yapılandırma dosyası kaydedilemedi:"
+  could_not_open_url:
+    title:
+      en: "Could not open URL"
+      tr: "URL açılamadı"
+    description:
+      en: "An error occured while opening the URL: %{p}\n%{e}"
+      tr: "URL açılırken bir hata oluştu: %{p}\n%{e}"

@@ -1,5 +1,5 @@
-use iced::widget::{column, container, markdown};
-use iced::{Alignment, Element, Theme};
+use iced::widget::{container, markdown};
+use iced::{Element, Pixels, Theme};
 
 pub fn about_modal<'a, Message>(
     app: &'a crate::TestApp,
@@ -9,13 +9,15 @@ where
     Message: Clone + 'a,
 {
     container(
-        column![markdown(
+        markdown(
             &app.modal_markdowns.about,
             markdown::Settings::default(),
-            markdown::Style::from_palette(Theme::TokyoNightStorm.palette())
+            markdown::Style::from_palette(Theme::TokyoNightStorm.palette()),
         )
-        .map(on_link_click)]
-        .align_x(Alignment::Center),
+        .map(on_link_click),
     )
+    .max_width(Pixels::from(400))
+    .style(container::rounded_box)
+    .padding(10)
     .into()
 }
