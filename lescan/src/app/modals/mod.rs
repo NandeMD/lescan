@@ -1,6 +1,7 @@
 use iced::widget::{center, container, markdown, mouse_area, opaque, stack};
 use iced::{Color, Element};
 use rust_i18n::t;
+use settings::SettingsTabs;
 
 pub mod about;
 pub mod settings;
@@ -16,13 +17,18 @@ pub fn modal_handler<'a, Message>(
     modal_type: ModalType,
     on_blur: Message,
     on_link_click: impl Fn(markdown::Url) -> Message + 'a,
+    on_settings_tab_click: impl Fn(SettingsTabs) -> Message + 'static,
     app: &'a crate::TestApp,
 ) -> Element<'a, Message>
 where
     Message: Clone + 'a,
 {
     match modal_type {
-        ModalType::Settings => modal(base, settings::settings_modal(), on_blur),
+        ModalType::Settings => modal(
+            base,
+            settings::settings_modal(app, on_settings_tab_click),
+            on_blur,
+        ),
         ModalType::About => modal(base, about::about_modal(app, on_link_click), on_blur),
     }
 }

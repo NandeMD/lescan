@@ -390,7 +390,7 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
         Message::ShowModal(modal_type) => {
             app.show_modal = Some(modal_type);
         }
-        Message::HideModal(_) => {
+        Message::HideModal => {
             app.show_modal = None;
         }
         Message::LinkClicked(url) => match open::that_detached(url.to_string()) {
@@ -405,6 +405,16 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
                 })
                 .then(|_| Task::none());
             }
+        },
+        Message::SettingsMenu(sm_message) => match sm_message {
+            SettingsMenu::SettingsTabSelected(tab) => {
+                app.current_settings_tab = tab;
+            }
+            SettingsMenu::ContentChanged(smcc) => match smcc {
+                SettingsMenuContentChanged::GeneralSettingsFilePath(path) => {
+                    app.settings_menu_contents.general_settings_file_path = path;
+                }
+            },
         },
         Message::ExitApp => {
             let cache = crate::app_cache::AppCache {

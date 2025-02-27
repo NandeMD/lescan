@@ -27,9 +27,11 @@ pub enum Message {
     BalloonSelected(usize),
 
     ShowModal(ModalType),
-    HideModal(ModalType),
+    HideModal,
 
     LinkClicked(iced::widget::markdown::Url),
+
+    SettingsMenu(SettingsMenu),
 
     ExitApp,
 }
@@ -42,4 +44,15 @@ pub enum FileOperation {
     SaveFileDialog,
     SaveAsFileDialog,
     NewFileDialog,
+}
+
+#[derive(Debug, Clone)]
+pub enum SettingsMenu {
+    ContentChanged(SettingsMenuContentChanged),
+    SettingsTabSelected(crate::app::modals::settings::SettingsTabs),
+}
+
+#[derive(Debug, Clone)]
+pub enum SettingsMenuContentChanged {
+    GeneralSettingsFilePath(String),
 }

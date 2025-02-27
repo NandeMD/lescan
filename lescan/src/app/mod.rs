@@ -12,7 +12,7 @@ use rust_i18n::t;
 use widgets::top_menu::*;
 
 use crate::app_cache::AppCache;
-use crate::message::Message;
+use crate::message::{Message, SettingsMenu};
 use crate::settings::AppSettings;
 use crate::utils::bln::bln_content_creator;
 use crate::utils::handlers::*;
@@ -24,6 +24,7 @@ use widgets::main_content::{main_content_pane_grid, Pane};
 pub struct TestApp {
     pub translation_document: Document,
     pub settings: AppSettings,
+    pub settings_menu_contents: modals::settings::SettingsMenuContents,
 
     pub panes: pane_grid::State<widgets::main_content::Pane>,
 
@@ -42,6 +43,8 @@ pub struct TestApp {
     pub current_img_tab: ImageTabs,
     pub img_scroller: scrollable::Id,
     pub img_scroller_current_scroll: scrollable::RelativeOffset,
+
+    pub current_settings_tab: modals::settings::SettingsTabs,
 
     pub document_file_location: Option<String>,
 
@@ -79,11 +82,15 @@ impl TestApp {
 
         let cache = AppCache::default();
         let settings = AppSettings::new(cache.settings_file_path.clone());
+        let settings_menu_contents = modals::settings::SettingsMenuContents {
+            general_settings_file_path: settings.settings_file_path.clone(),
+        };
 
         (
             Self {
                 translation_document: tl_doc,
                 settings,
+                settings_menu_contents,
                 panes,
 
                 selected_bln_type: Some(widgets::main_content::BlnTypes::Dialogue),
@@ -98,6 +105,8 @@ impl TestApp {
                 current_img_tab: ImageTabs::Document,
                 img_scroller: scrollable::Id::unique(),
                 img_scroller_current_scroll: scrollable::RelativeOffset::START,
+
+                current_settings_tab: modals::settings::SettingsTabs::General,
 
                 document_file_location: None,
                 show_modal: None,
@@ -155,8 +164,9 @@ impl TestApp {
             modals::modal_handler(
                 base,
                 modal.clone(),
-                Message::HideModal(modal.clone()),
+                Message::HideModal,
                 Message::LinkClicked,
+                |tid| Message::SettingsMenu(SettingsMenu::SettingsTabSelected(tid)),
                 self,
             )
         } else {
