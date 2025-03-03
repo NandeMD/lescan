@@ -8,6 +8,15 @@ settings:
     advanced:
       en: "Advanced"
       tr: "Gelişmiş"
+    close:
+      en: "Close"
+      tr: "Kapat"
+    apply:
+      en: "Apply"
+      tr: "Uygula"
+    save:
+      en: "Save"
+      tr: "Kaydet"
   settings_file_path:
     label:
       en: "Settings File Path"
@@ -15,3 +24,6 @@ settings:
     placeholder:
       en: "Settings file path..."
       tr: "Ayarların kaydedileceği dosyanın yolu..."
+  app_theme:
+    en: "App Theme"
+    tr: "Uygulama Teması"

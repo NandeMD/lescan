@@ -24,7 +24,7 @@ fn general_settings(app: &crate::TestApp) -> impl Into<Element<Message>> {
                 }),
             ))
             .push(input_with_header(
-                "App Theme",
+                t!("settings.app_theme"),
                 pick_list(
                     iced::Theme::ALL,
                     Some(app.settings_menu_contents.app_theme.clone()),
@@ -52,7 +52,7 @@ pub fn settings_modal(app: &crate::TestApp) -> Element<Message> {
     .push(
         SettingsTabs::Advanced,
         TabLabel::Text(t!("settings.buttons.advanced").into_owned()),
-        text("Advanced settings"),
+        column![],
     )
     .tab_label_padding(5)
     .tab_label_spacing(5)
@@ -65,9 +65,11 @@ pub fn settings_modal(app: &crate::TestApp) -> Element<Message> {
             horizontal_rule(10),
             row![
                 horizontal_space().width(Length::Fill),
-                button("Close").on_press(Message::HideModal),
-                button("Apply").on_press(Message::SettingsMenu(SettingsMenu::ApplySettings)),
-                button("Save").on_press(Message::SettingsMenu(SettingsMenu::SaveSettings)),
+                button(text(t!("settings.buttons.close"))).on_press(Message::HideModal),
+                button(text(t!("settings.buttons.apply")))
+                    .on_press(Message::SettingsMenu(SettingsMenu::ApplySettings)),
+                button(text(t!("settings.buttons.save")))
+                    .on_press(Message::SettingsMenu(SettingsMenu::SaveSettings)),
             ]
             .width(Length::Fill)
             .spacing(3)
