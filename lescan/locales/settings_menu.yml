@@ -27,3 +27,10 @@ settings:
   app_theme:
     en: "App Theme"
     tr: "Uygulama Teması"
+  language:
+    label:
+      en: "App Language"
+      tr: "Uygulama Dili"
+    placeholder:
+      en: "Select language..."
+      tr: "Dil seçin..."

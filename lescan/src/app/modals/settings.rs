@@ -35,6 +35,22 @@ fn general_settings(app: &crate::TestApp) -> impl Into<Element<Message>> {
                     },
                 ),
             ))
+            .push(input_with_header(
+                t!("settings.language.label"),
+                pick_list(
+                    rust_i18n::available_locales!()
+                        .iter()
+                        .map(|l| l.to_string())
+                        .collect::<Vec<String>>(),
+                    app.settings_menu_contents.language.clone(),
+                    |t| {
+                        Message::SettingsMenu(SettingsMenu::ContentChanged(
+                            SettingsMenuContentChanged::GeneralSettingsLanguage(t),
+                        ))
+                    },
+                )
+                .placeholder(t!("settings.language.placeholder")),
+            ))
             .spacing(5),
     ))
     .padding(5)
@@ -87,6 +103,7 @@ pub fn settings_modal(app: &crate::TestApp) -> Element<Message> {
 pub struct SettingsMenuContents {
     pub general_settings_file_path: String,
     pub app_theme: iced::Theme,
+    pub language: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

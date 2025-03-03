@@ -83,7 +83,12 @@ impl TestApp {
         let settings_menu_contents = modals::settings::SettingsMenuContents {
             general_settings_file_path: settings.settings_file_path.clone(),
             app_theme: settings.app_theme.clone(),
+            language: settings.language.clone(),
         };
+
+        if let Some(lang) = &settings.language {
+            rust_i18n::set_locale(lang);
+        }
 
         (
             Self {

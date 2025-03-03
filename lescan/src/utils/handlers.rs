@@ -417,6 +417,9 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
                 SettingsMenuContentChanged::GeneralSettingsAppTheme(app_theme) => {
                     app.settings_menu_contents.app_theme = app_theme;
                 }
+                SettingsMenuContentChanged::GeneralSettingsLanguage(lang) => {
+                    app.settings_menu_contents.language = Some(lang);
+                }
             },
             SettingsMenu::ApplySettings => {
                 app.settings.apply_from_modal(&app.settings_menu_contents);

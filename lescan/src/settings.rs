@@ -10,6 +10,7 @@ pub struct AppSettings {
     pub settings_file_path: String,
     #[serde(with = "theme_serde")]
     pub app_theme: iced::Theme,
+    pub language: Option<String>,
 }
 
 impl AppSettings {
@@ -35,6 +36,7 @@ impl AppSettings {
             AppSettings {
                 settings_file_path: settings_file_path.to_string(),
                 app_theme: iced::Theme::TokyoNight,
+                language: None,
             }
         }
     }
@@ -42,6 +44,10 @@ impl AppSettings {
     pub fn apply_from_modal(&mut self, settings_modal: &SettingsMenuContents) {
         self.settings_file_path = settings_modal.general_settings_file_path.clone();
         self.app_theme = settings_modal.app_theme.clone();
+        self.language = settings_modal.language.clone();
+        if let Some(lang) = &self.language {
+            rust_i18n::set_locale(lang);
+        }
     }
 
     pub fn save(&self) {

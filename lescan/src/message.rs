@@ -54,8 +54,10 @@ pub enum SettingsMenu {
     SaveSettings,
 }
 
+#[allow(clippy::enum_variant_names)]
 #[derive(Debug, Clone)]
 pub enum SettingsMenuContentChanged {
     GeneralSettingsFilePath(String),
     GeneralSettingsAppTheme(iced::Theme),
+    GeneralSettingsLanguage(String),
 }
