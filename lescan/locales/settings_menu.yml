@@ -1,0 +1,17 @@
+_version: 2
+
+settings:
+  buttons:
+    general:
+      en: "General"
+      tr: "Genel"
+    advanced:
+      en: "Advanced"
+      tr: "Gelişmiş"
+  settings_file_path:
+    label:
+      en: "Settings File Path"
+      tr: "Ayarlar Dosyası Yolu"
+    placeholder:
+      en: "Settings file path..."
+      tr: "Ayarların kaydedileceği dosyanın yolu..."

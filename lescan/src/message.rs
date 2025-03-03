@@ -50,9 +50,12 @@ pub enum FileOperation {
 pub enum SettingsMenu {
     ContentChanged(SettingsMenuContentChanged),
     SettingsTabSelected(crate::app::modals::settings::SettingsTabs),
+    ApplySettings,
+    SaveSettings,
 }
 
 #[derive(Debug, Clone)]
 pub enum SettingsMenuContentChanged {
     GeneralSettingsFilePath(String),
+    GeneralSettingsAppTheme(iced::Theme),
 }

@@ -12,7 +12,7 @@ use rust_i18n::t;
 use widgets::top_menu::*;
 
 use crate::app_cache::AppCache;
-use crate::message::{Message, SettingsMenu};
+use crate::message::Message;
 use crate::settings::AppSettings;
 use crate::utils::bln::bln_content_creator;
 use crate::utils::handlers::*;
@@ -37,8 +37,6 @@ pub struct TestApp {
     pub t3_content: text_editor::Content,
 
     pub current_balloon: usize,
-
-    pub theme: Theme,
 
     pub current_img_tab: ImageTabs,
     pub img_scroller: scrollable::Id,
@@ -84,6 +82,7 @@ impl TestApp {
         let settings = AppSettings::new(cache.settings_file_path.clone());
         let settings_menu_contents = modals::settings::SettingsMenuContents {
             general_settings_file_path: settings.settings_file_path.clone(),
+            app_theme: settings.app_theme.clone(),
         };
 
         (
@@ -99,8 +98,6 @@ impl TestApp {
                 t3_content,
 
                 current_balloon,
-
-                theme: Theme::TokyoNight,
 
                 current_img_tab: ImageTabs::Document,
                 img_scroller: scrollable::Id::unique(),
@@ -166,7 +163,6 @@ impl TestApp {
                 modal.clone(),
                 Message::HideModal,
                 Message::LinkClicked,
-                |tid| Message::SettingsMenu(SettingsMenu::SettingsTabSelected(tid)),
                 self,
             )
         } else {
@@ -223,6 +219,6 @@ impl TestApp {
     }
 
     pub fn theme(&self) -> Theme {
-        self.theme.clone()
+        self.settings.app_theme.clone()
     }
 }

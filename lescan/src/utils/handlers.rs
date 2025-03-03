@@ -414,7 +414,17 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
                 SettingsMenuContentChanged::GeneralSettingsFilePath(path) => {
                     app.settings_menu_contents.general_settings_file_path = path;
                 }
+                SettingsMenuContentChanged::GeneralSettingsAppTheme(app_theme) => {
+                    app.settings_menu_contents.app_theme = app_theme;
+                }
             },
+            SettingsMenu::ApplySettings => {
+                app.settings.apply_from_modal(&app.settings_menu_contents);
+            }
+            SettingsMenu::SaveSettings => {
+                app.settings.apply_from_modal(&app.settings_menu_contents);
+                app.settings.save();
+            }
         },
         Message::ExitApp => {
             let cache = crate::app_cache::AppCache {
