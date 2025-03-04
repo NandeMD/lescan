@@ -17,7 +17,12 @@ fn labeled_button<'a>(
     label: impl iced::advanced::text::IntoFragment<'a>,
     msg: Message,
 ) -> button::Button<'a, Message, iced::Theme, iced::Renderer> {
-    base_menu_button(text(label).align_y(alignment::Vertical::Center), msg)
+    base_menu_button(
+        text(label)
+            .align_y(alignment::Vertical::Center)
+            .shaping(text::Shaping::Advanced),
+        msg,
+    )
 }
 
 fn menu_sub_button<'a>(
@@ -27,7 +32,8 @@ fn menu_sub_button<'a>(
     labeled_button(label, msg).width(Length::Fill)
 }
 
-pub fn menu_sub_button_app_settings<'a>() -> button::Button<'a, Message, iced::Theme, iced::Renderer> {
+pub fn menu_sub_button_app_settings<'a>() -> button::Button<'a, Message, iced::Theme, iced::Renderer>
+{
     menu_sub_button(
         t!("app_menu.settings"),
         Message::ShowModal(crate::app::modals::ModalType::Settings),

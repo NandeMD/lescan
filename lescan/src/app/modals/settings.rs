@@ -1,4 +1,5 @@
 use crate::message::{Message, SettingsMenu, SettingsMenuContentChanged};
+use iced::advanced::text::Shaping;
 use iced::alignment::Vertical;
 use iced::widget::{
     button, column, container, horizontal_rule, horizontal_space, pick_list, row, scrollable, text,
@@ -81,10 +82,11 @@ pub fn settings_modal(app: &crate::TestApp) -> Element<Message> {
             horizontal_rule(10),
             row![
                 horizontal_space().width(Length::Fill),
-                button(text(t!("settings.buttons.close"))).on_press(Message::HideModal),
-                button(text(t!("settings.buttons.apply")))
+                button(text(t!("settings.buttons.close")).shaping(Shaping::Advanced))
+                    .on_press(Message::HideModal),
+                button(text(t!("settings.buttons.apply")).shaping(Shaping::Advanced))
                     .on_press(Message::SettingsMenu(SettingsMenu::ApplySettings)),
-                button(text(t!("settings.buttons.save")))
+                button(text(t!("settings.buttons.save")).shaping(Shaping::Advanced))
                     .on_press(Message::SettingsMenu(SettingsMenu::SaveSettings)),
             ]
             .width(Length::Fill)
@@ -117,7 +119,7 @@ fn input_with_header<'a>(
     element: impl Into<Element<'a, Message>>,
 ) -> Element<'a, Message> {
     Column::new()
-        .push(text(header_text.as_ref().to_string()))
+        .push(text(header_text.as_ref().to_string()).shaping(Shaping::Advanced))
         .push(element)
         .padding(5)
         .into()
