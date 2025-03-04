@@ -1,5 +1,5 @@
 use crate::app::widgets::main_content::BlnTypes;
-use crate::app::TestApp;
+use crate::app::LeScan;
 use crate::message::*;
 use crate::utils::dialog_windows;
 use iced::keyboard::key::{Key, Named};
@@ -19,7 +19,7 @@ const SUPPORTED_IMG_EXTENSIONS: [&str; 12] = [
     "jpg", "jpeg", "png", "gif", "bmp", "tiff", "webp", "avif", "dds", "ff", "hdr", "ico",
 ];
 
-pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<Message> {
+pub fn message_handler(msg: crate::message::Message, app: &mut LeScan) -> Task<Message> {
     match msg {
         Message::BlnTypeSelected(bln_type) => {
             app.selected_bln_type = Some(bln_type);
@@ -442,7 +442,7 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
     Task::none()
 }
 
-pub fn handle_enter_key_press(app: &mut TestApp) {
+pub fn handle_enter_key_press(app: &mut LeScan) {
     // Save the content of the text editors to the current balloon
     let tl = app
         .t1_content
@@ -565,7 +565,7 @@ fn handle_text_input_balloon_type_selection(
     }
 }
 
-fn clipboard_img_paste(app: &mut TestApp) {
+fn clipboard_img_paste(app: &mut LeScan) {
     #[cfg(target_os = "windows")]
     {
         use clipboard_win::{formats, Clipboard, Getter};

@@ -21,7 +21,7 @@ use crate::utils::{panes::MainPanes, tabs::ImageTabs};
 use widgets::footer::footer;
 use widgets::main_content::{main_content_pane_grid, Pane};
 
-pub struct TestApp {
+pub struct LeScan {
     pub translation_document: Document,
     pub settings: AppSettings,
     pub settings_menu_contents: modals::settings::SettingsMenuContents,
@@ -50,7 +50,7 @@ pub struct TestApp {
     pub modal_markdowns: modals::ModalMarkdowns,
 }
 
-impl TestApp {
+impl LeScan {
     pub fn new() -> (Self, Task<Message>) {
         let mut tl_doc = Document::default();
         tl_doc.add_balloon_empty();

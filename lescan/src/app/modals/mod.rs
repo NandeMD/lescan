@@ -17,7 +17,7 @@ pub fn modal_handler<'a>(
     modal_type: ModalType,
     on_blur: Message,
     on_link_click: impl Fn(markdown::Url) -> Message + 'a,
-    app: &'a crate::TestApp,
+    app: &'a crate::LeScan,
 ) -> Element<'a, Message> {
     match modal_type {
         ModalType::Settings => modal(base, settings::settings_modal(app), on_blur),

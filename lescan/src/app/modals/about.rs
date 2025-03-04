@@ -2,7 +2,7 @@ use iced::widget::{container, markdown};
 use iced::{Element, Pixels, Theme};
 
 pub fn about_modal<'a, Message>(
-    app: &'a crate::TestApp,
+    app: &'a crate::LeScan,
     on_link_click: impl Fn(markdown::Url) -> Message + 'a,
 ) -> Element<'a, Message>
 where

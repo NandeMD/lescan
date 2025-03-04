@@ -9,7 +9,7 @@ use iced::{Element, Length};
 use iced_aw::sidebar::{SidebarWithContent, TabLabel};
 use rust_i18n::t;
 
-fn general_settings(app: &crate::TestApp) -> impl Into<Element<Message>> {
+fn general_settings(app: &crate::LeScan) -> impl Into<Element<Message>> {
     container(scrollable(
         Column::new()
             .push(input_with_header(
@@ -57,7 +57,7 @@ fn general_settings(app: &crate::TestApp) -> impl Into<Element<Message>> {
     .padding(5)
 }
 
-pub fn settings_modal(app: &crate::TestApp) -> Element<Message> {
+pub fn settings_modal(app: &crate::LeScan) -> Element<Message> {
     let settings_sidebar_with_content = SidebarWithContent::new(|t_id| {
         Message::SettingsMenu(SettingsMenu::SettingsTabSelected(t_id))
     })

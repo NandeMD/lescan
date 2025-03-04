@@ -39,7 +39,7 @@ impl std::fmt::Display for BlnTypes {
     }
 }
 
-pub fn main_content_pane_grid(app: &crate::app::TestApp) -> pane_grid::PaneGrid<Message> {
+pub fn main_content_pane_grid(app: &crate::app::LeScan) -> pane_grid::PaneGrid<Message> {
     pane_grid::PaneGrid::new(&app.panes, move |_id, pane, _is_max| {
         let title_bar = pane_grid::TitleBar::new(
             container({

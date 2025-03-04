@@ -3,7 +3,7 @@
 use rust_i18n::i18n;
 
 mod app;
-use app::TestApp;
+use app::LeScan;
 mod app_cache;
 mod message;
 mod settings;
@@ -13,12 +13,12 @@ i18n!("locales", fallback = "en");
 
 fn main() -> iced::Result {
     #[cfg(debug_assertions)]
-    println!("Starting TestApp");
+    println!("Starting lescan");
 
-    iced::application("Test", TestApp::update, TestApp::view)
-        .subscription(TestApp::subscription)
-        .theme(TestApp::theme)
+    iced::application("LeScan", LeScan::update, LeScan::view)
+        .subscription(LeScan::subscription)
+        .theme(LeScan::theme)
         .centered()
         .exit_on_close_request(false)
-        .run_with(TestApp::new)
+        .run_with(LeScan::new)
 }
