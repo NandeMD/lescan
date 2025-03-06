@@ -1,22 +1,25 @@
 use crate::app::widgets::main_content::BlnTypes;
-use crate::app::TestApp;
+use crate::app::LeScan;
 use crate::message::*;
+use crate::utils::dialog_windows;
 use iced::keyboard::key::{Key, Named};
 use iced::widget::{
     self,
     text_editor::{self, Binding, KeyPress, Status},
 };
-use iced::Task;
+use iced::{window, Task};
 use rsff::balloon::Balloon;
 use rsff::TYPES;
 
 use super::tabs::ImageTabs;
 
+use rust_i18n::t;
+
 const SUPPORTED_IMG_EXTENSIONS: [&str; 12] = [
     "jpg", "jpeg", "png", "gif", "bmp", "tiff", "webp", "avif", "dds", "ff", "hdr", "ico",
 ];
 
-pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<Message> {
+pub fn message_handler(msg: crate::message::Message, app: &mut LeScan) -> Task<Message> {
     match msg {
         Message::BlnTypeSelected(bln_type) => {
             app.selected_bln_type = Some(bln_type);
@@ -61,19 +64,6 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
         Message::T3ContentChanged(action) => {
             app.t3_content.perform(action);
         }
-        Message::SyncHeader(offset) => {
-            app.current_scroll = offset;
-        }
-        Message::TableColumnResizing(index, offset) => {
-            if let Some(col) = app.columns.get_mut(index) {
-                col.resize_offset = Some(offset);
-            }
-        }
-        Message::TableColumnResized => app.columns.iter_mut().for_each(|col| {
-            if let Some(offset) = col.resize_offset.take() {
-                col.width += offset;
-            }
-        }),
         Message::TabPressed => return iced::widget::focus_next(),
         Message::EnterPressed => handle_enter_key_press(app),
         Message::PaneGridResized(widget::pane_grid::ResizeEvent { split, ratio }) => {
@@ -97,16 +87,76 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
         }
         Message::FileDropped(path) => {
             if path.is_file() {
-                let ext = path.extension().unwrap().to_str().unwrap().to_lowercase();
+                let ext = {
+                    if let Some(extension) = path.extension() {
+                        if let Some(ext) = extension.to_str() {
+                            ext.to_string()
+                        } else {
+                            return Task::future(async move {
+                                dialog_windows::show_error_dialog(
+                                    t!("errors.extension_error.title"),
+                                    t!("errors.extension_error.description", name = path.display()),
+                                )
+                                .await
+                            })
+                            .then(|_| Task::none());
+                        }
+                    } else {
+                        return Task::future(async move {
+                            dialog_windows::show_error_dialog(
+                                t!("errors.extension_error.title"),
+                                t!("errors.extension_error.description", name = path.display()),
+                            )
+                            .await
+                        })
+                        .then(|_| Task::none());
+                    }
+                };
 
                 if ["sffx", "sffz", "txt"].contains(&ext.as_str()) {
                     app.current_balloon = 0;
-                    app.translation_document = rsff::Document::open(&path).unwrap();
+                    app.translation_document = {
+                        match rsff::Document::open(&path) {
+                            Ok(doc) => doc,
+                            Err(e) => {
+                                let e = e.to_string();
+                                return Task::future(async move {
+                                    dialog_windows::show_error_dialog(
+                                        t!("errors.open_file_error.title"),
+                                        t!(
+                                            "errors.open_file_error.description",
+                                            p = path.display(),
+                                            e = e
+                                        ),
+                                    )
+                                    .await
+                                })
+                                .then(|_| Task::none());
+                            }
+                        }
+                    };
                     app.document_file_location = Some(path.display().to_string());
                 } else if SUPPORTED_IMG_EXTENSIONS.contains(&ext.as_str()) {
                     let current_bln = app.current_balloon;
-                    let new_img_data = std::fs::read(path).unwrap();
-                    app.translation_document.balloons[current_bln].add_image(ext, new_img_data);
+                    match std::fs::read(&path) {
+                        Ok(new_img_data) => app.translation_document.balloons[current_bln]
+                            .add_image(ext, new_img_data),
+                        Err(e) => {
+                            let e = e.to_string();
+                            return Task::future(async move {
+                                dialog_windows::show_error_dialog(
+                                    t!("errors.read_img_file_error.title"),
+                                    t!(
+                                        "errors.read_img_file_error.description",
+                                        p = path.display(),
+                                        e = e
+                                    ),
+                                )
+                                .await
+                            })
+                            .then(|_| Task::none());
+                        }
+                    }
                 }
             } else if path.is_dir() {
                 let mut images_in_path = std::fs::read_dir(path)
@@ -114,6 +164,7 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
                     .filter(|e| {
                         e.is_ok()
                             && e.as_ref().unwrap().path().is_file()
+                            && e.as_ref().unwrap().path().extension().is_some()
                             && SUPPORTED_IMG_EXTENSIONS.contains(
                                 &e.as_ref()
                                     .unwrap()
@@ -198,14 +249,12 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
             FileOperation::NewFileDialog => {
                 return Task::future(async {
                     let dywt = rfd::AsyncMessageDialog::new()
-                    .set_title("New File")
-                    .set_description(
-                        "Do you want to create a new document? All unsaved progress will be lost.",
-                    )
-                    .set_level(rfd::MessageLevel::Warning)
-                    .set_buttons(rfd::MessageButtons::YesNo)
-                    .show()
-                    .await;
+                        .set_title(t!("dialog_windows.new_document.title"))
+                        .set_description(t!("dialog_windows.new_document.description"))
+                        .set_level(rfd::MessageLevel::Warning)
+                        .set_buttons(rfd::MessageButtons::YesNo)
+                        .show()
+                        .await;
                     if dywt == rfd::MessageDialogResult::Yes {
                         Some(())
                     } else {
@@ -229,7 +278,7 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
                 return Task::future(async {
                     rfd::AsyncFileDialog::new()
                         .add_filter("RSFF", &["txt", "sffx", "sffz"])
-                        .set_title("Open a scanlation file.")
+                        .set_title(t!("dialog_windows.open_document.title"))
                         .pick_file()
                         .await
                 })
@@ -250,7 +299,7 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
                                     save_location.display(),
                                     save_error
                                 ))
-                                .set_title("Error While Saving")
+                                .set_title(t!("dialog_windows.errors.error_while_saving.title"))
                                 .show()
                                 .await;
                         })
@@ -269,7 +318,7 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
                         } else {
                             rfd::AsyncFileDialog::new()
                                 .add_filter("RSFF", &["sffz"])
-                                .set_title("Save a scanlation file.")
+                                .set_title(t!("dialog_windows.save_document.title"))
                                 .set_can_create_directories(true)
                                 .set_file_name("scan.sffz")
                                 .save_file()
@@ -284,13 +333,22 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
                 return Task::perform(
                     async {
                         rfd::AsyncFileDialog::new()
-                            .add_filter("Compressed Scanlation File (default)", &["sffz"])
-                            .add_filter("Scanlation File", &["sffx"])
-                            .add_filter("Text File", &["txt"])
-                            .add_filter("Word Document", &["docx"])
-                            .set_title("Save a scanlation file.")
+                            .add_filter(
+                                t!("dialog_windows.save_as_document.filter_sffz"),
+                                &["sffz"],
+                            )
+                            .add_filter(
+                                t!("dialog_windows.save_as_document.filter_sffx"),
+                                &["sffx"],
+                            )
+                            .add_filter(t!("dialog_windows.save_as_document.filter_txt"), &["txt"])
+                            .add_filter(
+                                t!("dialog_windows.save_as_document.filter_docx"),
+                                &["docx"],
+                            )
+                            .set_title(t!("dialog_windows.save_as_document.title"))
                             .set_can_create_directories(true)
-                            .set_file_name("scan.sffz")
+                            .set_file_name("scan")
                             .save_file()
                             .await
                             .map(|t| t.into())
@@ -299,11 +357,92 @@ pub fn message_handler(msg: crate::message::Message, app: &mut TestApp) -> Task<
                 )
             }
         },
+        Message::BalloonSelected(i) => {
+            app.current_balloon = i;
+            app.t1_content = text_editor::Content::with_text(
+                app.translation_document.balloons[i]
+                    .tl_content
+                    .join("\n//\n")
+                    .as_str(),
+            );
+            app.t2_content = text_editor::Content::with_text(
+                app.translation_document.balloons[i]
+                    .pr_content
+                    .join("\n//\n")
+                    .as_str(),
+            );
+            app.t3_content = text_editor::Content::with_text(
+                app.translation_document.balloons[i]
+                    .comments
+                    .join("\n//\n")
+                    .as_str(),
+            );
+            app.selected_bln_type = Some({
+                match app.translation_document.balloons[i].btype {
+                    TYPES::DIALOGUE => BlnTypes::Dialogue,
+                    TYPES::OT => BlnTypes::OT,
+                    TYPES::SQUARE => BlnTypes::Square,
+                    TYPES::ST => BlnTypes::ST,
+                    TYPES::THINKING => BlnTypes::Thinking,
+                }
+            });
+        }
+        Message::ShowModal(modal_type) => {
+            app.show_modal = Some(modal_type);
+        }
+        Message::HideModal => {
+            app.show_modal = None;
+        }
+        Message::LinkClicked(url) => match open::that_detached(url.to_string()) {
+            Ok(_) => {}
+            Err(e) => {
+                return Task::future(async move {
+                    dialog_windows::show_error_dialog(
+                        t!("errors.could_not_open_url.title"),
+                        t!("errors.could_not_open_url.description", p = url, e = e),
+                    )
+                    .await
+                })
+                .then(|_| Task::none());
+            }
+        },
+        Message::SettingsMenu(sm_message) => match sm_message {
+            SettingsMenu::SettingsTabSelected(tab) => {
+                app.current_settings_tab = tab;
+            }
+            SettingsMenu::ContentChanged(smcc) => match smcc {
+                SettingsMenuContentChanged::GeneralSettingsFilePath(path) => {
+                    app.settings_menu_contents.general_settings_file_path = path;
+                }
+                SettingsMenuContentChanged::GeneralSettingsAppTheme(app_theme) => {
+                    app.settings_menu_contents.app_theme = app_theme;
+                }
+                SettingsMenuContentChanged::GeneralSettingsLanguage(lang) => {
+                    app.settings_menu_contents.language = Some(lang);
+                }
+            },
+            SettingsMenu::ApplySettings => {
+                app.settings.apply_from_modal(&app.settings_menu_contents);
+            }
+            SettingsMenu::SaveSettings => {
+                app.settings.apply_from_modal(&app.settings_menu_contents);
+                app.settings.save();
+            }
+        },
+        Message::ExitApp => {
+            let cache = crate::app_cache::AppCache {
+                last_document: app.document_file_location.clone(),
+                settings_file_path: app.settings.settings_file_path.clone(),
+            };
+            cache.save();
+            println!("Cache saved!");
+            return window::get_latest().and_then(window::close);
+        }
     }
     Task::none()
 }
 
-pub fn handle_enter_key_press(app: &mut TestApp) {
+pub fn handle_enter_key_press(app: &mut LeScan) {
     // Save the content of the text editors to the current balloon
     let tl = app
         .t1_content
@@ -426,7 +565,7 @@ fn handle_text_input_balloon_type_selection(
     }
 }
 
-fn clipboard_img_paste(app: &mut TestApp) {
+fn clipboard_img_paste(app: &mut LeScan) {
     #[cfg(target_os = "windows")]
     {
         use clipboard_win::{formats, Clipboard, Getter};

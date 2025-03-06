@@ -1,0 +1,12 @@
+_version: 2
+
+text_editors:
+  translation_editor_placeholder:
+    en: "Type your translation here..."
+    tr: "Çevirinizi buraya yazın..."
+  proofread_editor_placeholder:
+    en: "Type your proofreading here..."
+    tr: "Okumanızı buraya yazın..."
+  comment_editor_placeholder:
+    en: "Type your comment here..."
+    tr: "Yorumunuzu buraya yazın..."

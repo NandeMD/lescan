@@ -1,0 +1,27 @@
+_version: 2
+
+about:
+  en: | 
+    This is an app made by [me](https://github.com/NandeMD), for me, and for you! For the love of Hentai!
+
+    This app is made with Rust and Iced, and is a work in progress. I'm still learning Rust and Iced, so please be patient with me.
+
+    If you have any suggestions, feedback, or bug reports, please let me know!
+
+    You can find the source code for this app on [GitHub](https://github.com/NandeMD/lescan).
+
+    Thank you for using this app!
+
+    - Version: 0.1.0"
+  tr: | 
+    Bu uygulama [benim](https://github.com/NandeMD) tarafından, şahsım ve sizin için yapıldı! Çok yaşa hentai!
+
+    Rust ve Iced ikullanılarakle yapılmıştır ve hâlâ geliştirme aşamasındadır. Rust ve Iced öğrenmeye devam ediyorum, bu yüzden lütfen sabırlı olun.
+
+    Herhangi bir öneriniz, geri bildiriminiz veya hata raporunuz varsa lütfen benimle paylaşın veya [GitHub](https://github.com/NandeMD/lescan) üzerinden [Issue](https://github.com/NandeMD/lescan/issues) oluşturun!
+
+    Uygulamanın kaynak kodunu [GitHub](https://github.com/NandeMD/lescan) üzerinde bulabilirsiniz.
+
+    Uygulamayı kullandığınız için teşekkür ederim!
+
+    - Sürüm: 0.1.0

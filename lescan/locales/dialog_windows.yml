@@ -1,0 +1,39 @@
+_version: 2
+
+dialog_windows:
+  new_document:
+    title:
+      en: "New Document"
+      tr: "Yeni Belge"
+    description:
+      en: "Do you want to create a new document? All unsaved progress will be lost."
+      tr: "Yeni bir belge oluşturmak istiyor musunuz? Kaydedilmemiş tüm ilerlemeler kaybolacaktır."
+  open_document:
+    title:
+      en: "Open a scanlation file."
+      tr: "Scanlation dosyası aç."
+  save_document:
+    title:
+      en: "Save a scanlation file."
+      tr: "Scanlation dosyasını kaydet."
+  save_as_document:
+    title:
+      en: "Save a scanlation file as..."
+      tr: "Scanlation dosyasını farklı kaydet..."
+    filter_sffz:
+      en: "Compressed Scanlation File (default)"
+      tr: "Sıkıştırılmış Scanlation Dosyası (varsayılan)"
+    filter_sffx:
+      en: "Scanlation File"
+      tr: "Scanlation Dosyası"
+    filter_txt:
+      en: "Text File"
+      tr: "Metin Dosyası"
+    filter_docx:
+      en: "Microsoft Word Document"
+      tr: "Microsoft Word Belgesi"
+  errors:
+    error_while_saving:
+      title:
+        en: "An error occurred while saving the document."
+        tr: "Belge kaydedilirken bir hata oluştu."

@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 /// let mut b: Balloon = Balloon::default();
 /// b.tl_content.push("This is a tl line.".to_string());
 /// ```
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize, Hash, PartialEq, Eq)]
 pub struct Balloon {
     pub tl_content: Vec<String>,
     pub pr_content: Vec<String>,
@@ -80,8 +80,8 @@ impl Balloon {
     /// Generates an JSON string of the balloon. No data loss so you can use this whenever you want.
     ///
     /// **Note:** Raw image data will be converted to a b64 encoded string.
-    pub fn to_json(&self) -> String {
-        serde_json::to_string(self).unwrap()
+    pub fn to_json(&self) -> serde_json::Result<String> {
+        serde_json::to_string(self)
     }
 
     /// Adds a translation line to the balloon.
@@ -116,26 +116,10 @@ impl std::fmt::Display for Balloon {
 
         // If balloon has pr content, generate balloon text from pr content
         // else, generate balloon text from tl content
-        if !self.pr_content.is_empty() {
-            write!(
-                f,
-                "{}",
-                self.pr_content
-                    .iter()
-                    .map(|pr| format!("{}{}", type_str, pr))
-                    .collect::<Vec<String>>()
-                    .join("\n//\n")
-            )
+        if self.pr_chars() != 0 {
+            write!(f, "{}{}", type_str, self.pr_content.join(" || "))
         } else {
-            write!(
-                f,
-                "{}",
-                self.tl_content
-                    .iter()
-                    .map(|tl| format!("{}{}", type_str, tl))
-                    .collect::<Vec<String>>()
-                    .join("\n//\n")
-            )
+            write!(f, "{}{}", type_str, self.tl_content.join(" || "))
         }
     }
 }
@@ -250,7 +234,7 @@ mod ballon_tests {
         let test_img = image::open("testimg.jpg").unwrap();
         b.add_image("jpg".to_string(), test_img.into_bytes());
 
-        let str = b.to_json();
+        let str = b.to_json().unwrap();
 
         let intended_json = String::from(
             r#"{"tl_content":["a"],"pr_content":["a","ZZZZZ"],"comments":["a"],"btype":"DIALOGUE","balloon_img":{"img_type":"jpg","img_data":"2be18zs71c_P0dPS1NTS0tPX09HS17-_81BR_6in0dLU709P4ZKV09TW1dPU2tnX2tzZ7u_x6srL_gwL7u7u7Kin8zs70dHP2dnZ5eXl5uTl09PT_v7-6Hh22dfa0cvN70dG5n-A09HU09XU09PV1cfH7Jua9EJC1tbW2NjY2ru5-CEf3pSV53Bs8zs5-hob8UlJ44WF5Hp65IB-7U5L_Rgd-hgZ52tr4qal-fTw3Nzc09PT-DAw8m5s_bOy7uDf91FT9oqK1NTS2tne3d3d19fV3t7e_v__9fXz19nY-tzc_0ZE47az1dPU1NTU1NTU1tbW3t7e2NjY2tra2tra4YuM9jU23d3d09PT1dXV29vb4-Pj3Nzc1tbW1tbW2dnZ_woJ2NTT29vb1tbW"}}"#,

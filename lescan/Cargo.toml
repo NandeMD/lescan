@@ -1,14 +1,18 @@
 [package]
-name = "iced_test"
+name = "lescan"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-iced = { version = "0.13", features = ["lazy", "image"] }
+iced = { version = "0.13", features = ["lazy", "image", "markdown"] }
 rsff = { path = "../rsff" }
 iced_aw = "0.11"
-iced_table = { git = "https://github.com/tarkah/iced_table.git" }
 rfd = "0.15.2"
+rust-i18n = "3.1"
+serde = { version = "1.0", features = ["derive"] }
+toml = { version = "0.8", features = ["parse", "display"] }
+open = "5.3"
+home = "0.5"
 
 [target.'cfg(windows)'.dependencies]
 clipboard-win = "5.4"

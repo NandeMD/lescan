@@ -1,25 +1,30 @@
+pub mod modals;
 pub mod widgets;
 
-use iced::widget::{self, column, pane_grid, scrollable, text_editor};
+use iced::widget::{self, column, pane_grid, scrollable, text_editor, Column};
 use iced::{Element, Length, Task, Theme};
 use iced_aw::{
     menu::{Item, Menu},
     menu_bar, menu_items,
 };
 use rsff::Document;
+use rust_i18n::t;
 use widgets::top_menu::*;
 
+use crate::app_cache::AppCache;
 use crate::message::Message;
+use crate::settings::AppSettings;
 use crate::utils::bln::bln_content_creator;
 use crate::utils::handlers::*;
 use crate::utils::{panes::MainPanes, tabs::ImageTabs};
 
-use widgets::balloons_table::*;
 use widgets::footer::footer;
 use widgets::main_content::{main_content_pane_grid, Pane};
 
-pub struct TestApp {
+pub struct LeScan {
     pub translation_document: Document,
+    pub settings: AppSettings,
+    pub settings_menu_contents: modals::settings::SettingsMenuContents,
 
     pub panes: pane_grid::State<widgets::main_content::Pane>,
 
@@ -33,22 +38,19 @@ pub struct TestApp {
 
     pub current_balloon: usize,
 
-    pub theme: Theme,
-
-    pub columns: Vec<BCol>,
-    pub current_scroll: scrollable::AbsoluteOffset,
-    pub table_header_scroller: scrollable::Id,
-    pub table_body_scroller: scrollable::Id,
-    pub table_footer_scroller: scrollable::Id,
-
     pub current_img_tab: ImageTabs,
     pub img_scroller: scrollable::Id,
     pub img_scroller_current_scroll: scrollable::RelativeOffset,
 
+    pub current_settings_tab: modals::settings::SettingsTabs,
+
     pub document_file_location: Option<String>,
+
+    pub show_modal: Option<modals::ModalType>,
+    pub modal_markdowns: modals::ModalMarkdowns,
 }
 
-impl TestApp {
+impl LeScan {
     pub fn new() -> (Self, Task<Message>) {
         let mut tl_doc = Document::default();
         tl_doc.add_balloon_empty();
@@ -76,9 +78,23 @@ impl TestApp {
 
         let panes = pane_grid::State::with_configuration(pane_config);
 
+        let cache = AppCache::default();
+        let settings = AppSettings::new(cache.settings_file_path.clone());
+        let settings_menu_contents = modals::settings::SettingsMenuContents {
+            general_settings_file_path: settings.settings_file_path.clone(),
+            app_theme: settings.app_theme.clone(),
+            language: settings.language.clone(),
+        };
+
+        if let Some(lang) = &settings.language {
+            rust_i18n::set_locale(lang);
+        }
+
         (
             Self {
                 translation_document: tl_doc,
+                settings,
+                settings_menu_contents,
                 panes,
 
                 selected_bln_type: Some(widgets::main_content::BlnTypes::Dialogue),
@@ -86,29 +102,17 @@ impl TestApp {
                 t2_content,
                 t3_content,
 
-                current_scroll: scrollable::AbsoluteOffset::default(),
                 current_balloon,
-
-                theme: Theme::TokyoNight,
-
-                columns: vec![
-                    BCol::new(ColumnKind::Index),
-                    BCol::new(ColumnKind::BlType),
-                    BCol::new(ColumnKind::BlImage),
-                    BCol::new(ColumnKind::TlContent),
-                    BCol::new(ColumnKind::PrContent),
-                    BCol::new(ColumnKind::Comments),
-                ],
-
-                table_header_scroller: scrollable::Id::unique(),
-                table_body_scroller: scrollable::Id::unique(),
-                table_footer_scroller: scrollable::Id::unique(),
 
                 current_img_tab: ImageTabs::Document,
                 img_scroller: scrollable::Id::unique(),
                 img_scroller_current_scroll: scrollable::RelativeOffset::START,
 
+                current_settings_tab: modals::settings::SettingsTabs::General,
+
                 document_file_location: None,
+                show_modal: None,
+                modal_markdowns: modals::ModalMarkdowns::default(),
             },
             widget::focus_next(),
         )
@@ -126,29 +130,49 @@ impl TestApp {
 
         #[rustfmt::skip]
         let mb = menu_bar!(
-            (menu_main_button("Files"), menu_tpl_1(menu_items!(
+            (menu_main_button(t!("file_menu.file")), menu_tpl_1(menu_items!(
                 (menu_sub_button_file_new())
                 (menu_sub_button_file_open())
                 (menu_sub_button_file_save())
                 (menu_sub_button_file_save_as())
+            )))
+            (menu_main_button(t!("app_menu.app")), menu_tpl_1(menu_items!(
+                (menu_sub_button_app_settings())
+                (menu_sub_button_about())
             )))
         );
 
         let pg = main_content_pane_grid(self);
 
         let footer_text = format!(
-            "Balloons: {} | Total Lines: {} | TL Characters: {} | PR Characters: {} | Comment Characters: {}",
+            "{}: {} | {}: {} | {}: {} | {}: {} | {}: {}",
+            t!("footer.balloons"),
             self.translation_document.balloons.len(),
+            t!("footer.total_lines"),
             self.translation_document.line_count(),
+            t!("footer.tl_chars"),
             self.translation_document.tl_chars(),
+            t!("footer.pr_chars"),
             self.translation_document.pr_chars(),
+            t!("footer.comment_chars"),
             self.translation_document.comment_chars()
         );
         let ftr = footer(footer_text)
             .width(Length::Fill)
             .height(Length::Fixed(30.0));
 
-        column![mb, pg, ftr].spacing(10).padding(10).into()
+        if let Some(modal) = &self.show_modal {
+            let base: Column<Message> = column![mb, pg, ftr].spacing(10).padding(10);
+            modals::modal_handler(
+                base,
+                modal.clone(),
+                Message::HideModal,
+                Message::LinkClicked,
+                self,
+            )
+        } else {
+            column![mb, pg, ftr].spacing(10).padding(10).into()
+        }
     }
 
     pub fn subscription(&self) -> iced::Subscription<Message> {
@@ -193,12 +217,13 @@ impl TestApp {
                 iced::Event::Window(iced::window::Event::FileDropped(pth)) => {
                     Some(Message::FileDropped(pth))
                 }
+                iced::Event::Window(iced::window::Event::CloseRequested) => Some(Message::ExitApp),
                 _ => None,
             }),
         ])
     }
 
     pub fn theme(&self) -> Theme {
-        self.theme.clone()
+        self.settings.app_theme.clone()
     }
 }

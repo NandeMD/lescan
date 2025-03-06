@@ -1,3 +1,16 @@
 [workspace]
 resolver = "2"
 members = ["rsff", "lescan"]
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+strip = "symbols"
+panic = "abort"
+codegen-units = 1
+
+[profile.profiler]
+inherits = "release"
+strip = "none"
+debug = 1
+codegen-units = 4

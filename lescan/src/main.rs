@@ -1,11 +1,24 @@
+//#![windows_subsystem = "windows"]
+
+use rust_i18n::i18n;
+
 mod app;
-use app::TestApp;
+use app::LeScan;
+mod app_cache;
 mod message;
+mod settings;
 mod utils;
 
+i18n!("locales", fallback = "en");
+
 fn main() -> iced::Result {
-    iced::application("Test", TestApp::update, TestApp::view)
-        .subscription(TestApp::subscription)
-        .theme(TestApp::theme)
-        .run_with(TestApp::new)
+    #[cfg(debug_assertions)]
+    println!("Starting lescan");
+
+    iced::application("LeScan", LeScan::update, LeScan::view)
+        .subscription(LeScan::subscription)
+        .theme(LeScan::theme)
+        .centered()
+        .exit_on_close_request(false)
+        .run_with(LeScan::new)
 }
