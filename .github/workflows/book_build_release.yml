@@ -26,6 +26,7 @@ jobs:
           curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf -y | sh
           rustup update
           cargo install mdbook
+          cargo install mdbook-alerts
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v5
