@@ -21,11 +21,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install mdBook
+      - name: Install Rust and mdBook
         run: |
           curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf -y | sh
           rustup update
-          cargo install --version mdbook
+          cargo install mdbook
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v5
