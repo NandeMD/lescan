@@ -34,6 +34,7 @@ jobs:
         run: |
           cd lescan-book
           mdbook build
+          ls
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
